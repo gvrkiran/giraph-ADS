@@ -255,11 +255,11 @@ public class FacilityLocationADSWeighted extends
 					// Clean Up
 					System.out.println("ADS size before CleanUP " + vertexADS.size());
 					long startTime = System.nanoTime();
-					// vertexADS = CleanUP(vertexADS,distance,bottom_k);
-					// long endTime = System.nanoTime();
-					// long duration = endTime - startTime;
-					// System.out.println("ADS size after CleanUP " + vertexADS.size() + " . Time taken " + duration);
-					// System.out.println("Prev Iter added " + prevIterAdded.keySet());
+					vertexADS = CleanUP(vertexADS,distance,bottom_k);
+					long endTime = System.nanoTime();
+					long duration = endTime - startTime;
+					System.out.println("ADS size after CleanUP " + vertexADS.size() + " . Time taken " + duration);
+					System.out.println("Prev Iter added " + prevIterAdded.keySet());
 				}
 			}
 		}
