@@ -24,12 +24,12 @@ public class FacilityLocationGiraphVertexValue implements Writable {
 		
 	}
 	
-	public void setFreezeMessagesList(double id) {
+	public void setReceivedFreezeMessagesFrom(double id) {
 		receivedFreezeMessagesFrom.put(id,0.0);
 		// vertexADS.add(id);
 	}
 	
-	public Map<Double, Double> getFreezeMessagesList() {
+	public Map<Double, Double> getReceivedFreezeMessagesFrom() {
 		return receivedFreezeMessagesFrom;
 	}
 	

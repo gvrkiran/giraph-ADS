@@ -38,12 +38,12 @@ public class FacilityLocationADSWeighted extends
 	Vertex<LongWritable, FacilityLocationADSWeightedVertexValue,FloatWritable, DoublePairWritable> {
 	/** the number of elements to consider in the bottom k sketch $k$ */
 	public static final IntConfOption BOTTOM_K = 
-			new IntConfOption("FacilityLocationADSWeighted.bottom_k", 20);
+			new IntConfOption("FacilityLocationADSWeighted.bottom_k", 10);
 	/** Class logger */
 	private static final Logger LOG =
 			Logger.getLogger(FacilityLocationADSWeighted.class);
 
-	private Vertex<LongWritable, FacilityLocationADSWeightedVertexValue, FloatWritable, DoublePairWritable> vertex;
+	// private Vertex<LongWritable, FacilityLocationADSWeightedVertexValue, FloatWritable, DoublePairWritable> vertex;
 	// private Map<Double, Double> vertexADS = new HashMap<Double, Double>();
 	// private Map<Double, Double> prevIterAdded = new HashMap<Double, Double>();
 	
@@ -255,11 +255,11 @@ public class FacilityLocationADSWeighted extends
 					// Clean Up
 					System.out.println("ADS size before CleanUP " + vertexADS.size());
 					long startTime = System.nanoTime();
-					vertexADS = CleanUP(vertexADS,distance,bottom_k);
-					long endTime = System.nanoTime();
-					long duration = endTime - startTime;
-					System.out.println("ADS size after CleanUP " + vertexADS.size() + " . Time taken " + duration);
-					System.out.println("Prev Iter added " + prevIterAdded.keySet());
+					// vertexADS = CleanUP(vertexADS,distance,bottom_k);
+					// long endTime = System.nanoTime();
+					// long duration = endTime - startTime;
+					// System.out.println("ADS size after CleanUP " + vertexADS.size() + " . Time taken " + duration);
+					// System.out.println("Prev Iter added " + prevIterAdded.keySet());
 				}
 			}
 		}

@@ -14,12 +14,25 @@ public class MapWritable implements Writable {
 	private Map<Double, Double> frozenNodes = new HashMap<Double, Double>();
 	
 	public MapWritable() {
-        frozenNodes = new HashMap<Double, Double>();
+        this.frozenNodes = new HashMap<Double, Double>();
     }
 	
+	public Map<Double, Double> get() {
+		return frozenNodes;
+	}
+	
+	public Map<Double, Double> addElement(double id) {
+		this.frozenNodes.put(id, 1.0);
+		return frozenNodes;
+	}
+	
 	public MapWritable(double id) {
-		frozenNodes = new HashMap<Double, Double>();
-		frozenNodes.put(id, 1.0);
+		// frozenNodes = new HashMap<Double, Double>();
+		this.frozenNodes.put(id, 1.0);
+	}
+	
+	public MapWritable(Map<Double, Double> map) {
+		this.frozenNodes = map;
 	}
 	
 	public Map<Double, Double> getFrozenNodes() {
@@ -30,10 +43,12 @@ public class MapWritable implements Writable {
 		frozenNodes = map;
 	}
 	
-	public Map<Double, Double> getMapWritable(double id) {
-		Map<Double, Double> tmp = new HashMap<Double, Double>();
-		tmp.put(id, 1.0);
-		return tmp;
+	public MapWritable getMapWritable(Map<Double, Double> map) {
+		return new MapWritable(map);
+	}
+	
+	public double getSize() {
+		return frozenNodes.size();
 	}
 	
 	@Override

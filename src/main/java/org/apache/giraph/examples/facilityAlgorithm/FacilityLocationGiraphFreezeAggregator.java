@@ -8,7 +8,7 @@ import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Writable;
 
 
-// aggregator to contain nodes that were already frozen
+// aggregator hashmap to contain nodes that were already frozen
 public class FacilityLocationGiraphFreezeAggregator extends BasicAggregator<MapWritable>{
 
 	public Map<Double, Double> vertexADS = new HashMap<Double, Double>();
