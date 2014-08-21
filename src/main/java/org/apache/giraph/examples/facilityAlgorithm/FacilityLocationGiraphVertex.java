@@ -68,7 +68,7 @@ Vertex<LongWritable, FacilityLocationGiraphVertexValue,FloatWritable, DoublePair
 		return vertexADS;
 	}
 	
-	private double getNeighborhoodSize(String ADS, Map<Double,Double> frozenClients, double distance) {
+	private double getNeighborhoodSize(String ADS, Set<Double> frozenClients, double distance) {
 		double neighborhoodSize = 0.0;
 		Map<Double,Double> currentADS = new TreeMap<Double, Double>();
 		
@@ -77,7 +77,7 @@ Vertex<LongWritable, FacilityLocationGiraphVertexValue,FloatWritable, DoublePair
 			String[] tmp1 = tmp[i].split(":");
 			double key = Double.parseDouble(tmp1[0]);
 			double value = Double.parseDouble(tmp1[1]);
-			if(!frozenClients.containsKey(key)) {
+			if(!frozenClients.contains(key)) {
 				currentADS.put(key,value);
 			}
 		}
@@ -108,10 +108,10 @@ Vertex<LongWritable, FacilityLocationGiraphVertexValue,FloatWritable, DoublePair
 		double facilityCost = getValue().getFacilityCost();
 		double vertexId = getId().get();
 		
-		Map<Double, Double> frozenClients = this.<MapWritable>getAggregatedValue(FROZEN_CLIENTS).get();
-		Map<Double, Double> openFacilities = this.<MapWritable>getAggregatedValue(OPEN_FACILITIES).get();
+		Set<Double> frozenClients = this.<MapWritable>getAggregatedValue(FROZEN_CLIENTS).get();
+		Set<Double> openFacilities = this.<MapWritable>getAggregatedValue(OPEN_FACILITIES).get();
 		
-		Map<Double, Double> receivedFreezeMessagesFrom = getValue().getReceivedFreezeMessagesFrom(); // add vertices which have already been seen
+		Set<Double> receivedFreezeMessagesFrom = getValue().getReceivedFreezeMessagesFrom(); // add vertices which have already been seen
 		
 		Map<Double, String> vertexADS = LoadADSFromFile();
 		
@@ -128,7 +128,7 @@ Vertex<LongWritable, FacilityLocationGiraphVertexValue,FloatWritable, DoublePair
 				getValue().setIsFacilityOpen();
 				getValue().setAlphaAtFacilityOpen(alpha);
 				aggregate(PHASE, new BooleanWritable(false));
-				openFacilities.put(vertexId,1.0);
+				openFacilities.add(vertexId);
 			}
 		}
 		else { // run method to send freeze messages
@@ -153,9 +153,9 @@ Vertex<LongWritable, FacilityLocationGiraphVertexValue,FloatWritable, DoublePair
 				}
 			}
 			
-			if(receivedFreezeMessagesFrom.containsKey(maxId)==false && maxId!=getId().get()) { // if the vertex already hasnt received a message from this id.. and self loop 
-				receivedFreezeMessagesFrom.put(maxId, remaining_distance);
-				frozenClients.put((double) getId().get(), 1.0);
+			if(receivedFreezeMessagesFrom.contains(maxId)==false && maxId!=getId().get()) { // if the vertex already hasnt received a message from this id.. and self loop 
+				receivedFreezeMessagesFrom.add(maxId);
+				frozenClients.add((double) getId().get());
 				aggregate(FROZEN_CLIENTS,new MapWritable().getMapWritable(frozenClients));
 				remaining_distance = maxDist - 1; // un-weighted case
 				if(remaining_distance>=0) {

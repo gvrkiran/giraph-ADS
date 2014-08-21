@@ -1,7 +1,9 @@
 package org.apache.giraph.examples.facilityAlgorithm;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.giraph.aggregators.BasicAggregator;
 import org.apache.hadoop.io.DoubleWritable;
@@ -10,16 +12,15 @@ import org.apache.hadoop.io.Writable;
 
 // aggregator hashmap to contain nodes that were already frozen
 public class FacilityLocationGiraphFreezeAggregator extends BasicAggregator<MapWritable>{
-
-	public Map<Double, Double> vertexADS = new HashMap<Double, Double>();
 	
 	@Override
 	public void aggregate(MapWritable map) {
-		Map<Double, Double> map1 = getAggregatedValue().getFrozenNodes();
-		Map<Double, Double> map2 = map.getFrozenNodes();
-		Map<Double, Double> map3 = new HashMap<Double, Double>();
-		map3.putAll(map1);
-		map3.putAll(map2);
+		Set<Double> map1 = getAggregatedValue().getFrozenNodes();
+		Set<Double> map2 = map.getFrozenNodes();
+		Set<Double> map3 = new HashSet<Double>();
+		
+		map3.addAll(map1);
+		map3.addAll(map2);
 		
 		getAggregatedValue().setFrozenNodes(map3);
 	}

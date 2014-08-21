@@ -4,8 +4,11 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.hadoop.io.Writable;
 
@@ -17,7 +20,7 @@ public class FacilityLocationGiraphVertexValue implements Writable {
 	public boolean isFrozen = false;
 	public boolean isFacilityOpen = false;
 	public double facilityCost = 0;
-	public Map<Double, Double> receivedFreezeMessagesFrom = new HashMap<Double, Double>();
+	public Set<Double> receivedFreezeMessagesFrom = new HashSet<Double>();
 	
 	/** Default constructor for reflection */
 	public FacilityLocationGiraphVertexValue() {
@@ -25,11 +28,11 @@ public class FacilityLocationGiraphVertexValue implements Writable {
 	}
 	
 	public void setReceivedFreezeMessagesFrom(double id) {
-		receivedFreezeMessagesFrom.put(id,0.0);
+		receivedFreezeMessagesFrom.add(id);
 		// vertexADS.add(id);
 	}
 	
-	public Map<Double, Double> getReceivedFreezeMessagesFrom() {
+	public Set<Double> getReceivedFreezeMessagesFrom() {
 		return receivedFreezeMessagesFrom;
 	}
 	
@@ -75,8 +78,8 @@ public class FacilityLocationGiraphVertexValue implements Writable {
 		int size = dataInput.readInt();
 		
 		for (int i = 0; i < size; i++) {
-		      this.receivedFreezeMessagesFrom.put(
-		    		  dataInput.readDouble(), dataInput.readDouble());
+		      this.receivedFreezeMessagesFrom.add(
+		    		  dataInput.readDouble());
 		}
 	}
 
@@ -84,10 +87,13 @@ public class FacilityLocationGiraphVertexValue implements Writable {
 	public void write(DataOutput dataOutput) throws IOException {
 		dataOutput.writeInt(this.receivedFreezeMessagesFrom.size());
 
-		for (Entry<Double, Double> entry : this.receivedFreezeMessagesFrom.entrySet()) {
-		      dataOutput.writeDouble(entry.getKey());
-		      dataOutput.writeDouble(entry.getValue());
+		Iterator iter = this.receivedFreezeMessagesFrom.iterator();
+		
+		while(iter.hasNext()) {
+			double tmp = (Double) iter.next();
+			dataOutput.writeDouble(tmp);
 		}
+
 	}
 	
 }

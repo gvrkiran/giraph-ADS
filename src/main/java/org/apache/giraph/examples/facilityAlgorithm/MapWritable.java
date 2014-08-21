@@ -4,47 +4,50 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.hadoop.io.Writable;
 
 public class MapWritable implements Writable {
 
-	private Map<Double, Double> frozenNodes = new HashMap<Double, Double>();
+	private Set<Double> frozenNodes = new HashSet<Double>();
 	
 	public MapWritable() {
-        this.frozenNodes = new HashMap<Double, Double>();
+        this.frozenNodes = new HashSet<Double>();
     }
 	
-	public Map<Double, Double> get() {
+	public Set<Double> get() {
 		return frozenNodes;
 	}
 	
-	public Map<Double, Double> addElement(double id) {
-		this.frozenNodes.put(id, 1.0);
+	public Set<Double> addElement(double id) {
+		this.frozenNodes.add(id);
 		return frozenNodes;
 	}
 	
 	public MapWritable(double id) {
 		// frozenNodes = new HashMap<Double, Double>();
-		this.frozenNodes.put(id, 1.0);
+		this.frozenNodes.add(id);
 	}
 	
-	public MapWritable(Map<Double, Double> map) {
-		this.frozenNodes = map;
+	public MapWritable(Set<Double> set) {
+		this.frozenNodes = set;
 	}
 	
-	public Map<Double, Double> getFrozenNodes() {
+	public Set<Double> getFrozenNodes() {
 		return frozenNodes;
 	}
 	
-	public void setFrozenNodes(Map<Double, Double> map) {
-		frozenNodes = map;
+	public void setFrozenNodes(Set<Double> set) {
+		frozenNodes = set;
 	}
 	
-	public MapWritable getMapWritable(Map<Double, Double> map) {
-		return new MapWritable(map);
+	public MapWritable getMapWritable(Set<Double> set) {
+		return new MapWritable(set);
 	}
 	
 	public double getSize() {
@@ -56,8 +59,7 @@ public class MapWritable implements Writable {
 		int size = input.readInt();
 		
 		for (int i = 0; i < size; i++) {
-		      this.frozenNodes.put(
-		    		  input.readDouble(), input.readDouble());
+		      this.frozenNodes.add(input.readDouble());
 		}
 	}
 
@@ -65,9 +67,11 @@ public class MapWritable implements Writable {
 	public void write(DataOutput output) throws IOException {
 		output.writeInt(this.frozenNodes.size());
 
-		for (Entry<Double, Double> entry : this.frozenNodes.entrySet()) {
-		      output.writeDouble(entry.getKey());
-		      output.writeDouble(entry.getValue());
+		Iterator iter = this.frozenNodes.iterator();
+		
+		while(iter.hasNext()) {
+			double tmp = (Double) iter.next();
+			output.writeDouble(tmp);
 		}
 	}
 
