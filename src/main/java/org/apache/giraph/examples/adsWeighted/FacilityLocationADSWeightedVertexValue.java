@@ -28,12 +28,20 @@ public class FacilityLocationADSWeightedVertexValue implements Writable {
 		// vertexADS.add(id);
 	}
 	
+	public void setADS(Map<Double, Double> ADS) {
+		this.vertexADS = ADS;
+	}
+	
 	public Map<Double, Double> getADS() {
 		return vertexADS;
 	}
 	
 	public void setPrevIterAdded(double id) {
 		prevIterAdded.put(id, 0.0);
+	}
+	
+	public void setPrevIterAdded(Map<Double, Double> prev) {
+		this.prevIterAdded = prev;
 	}
 	
 	public Map<Double, Double> getPrevIterAdded() {

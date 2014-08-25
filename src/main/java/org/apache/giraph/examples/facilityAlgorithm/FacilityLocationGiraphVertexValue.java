@@ -85,12 +85,17 @@ public class FacilityLocationGiraphVertexValue implements Writable {
 
 	@Override
 	public void write(DataOutput dataOutput) throws IOException {
+		dataOutput.writeBoolean(isFacilityOpen);
+		dataOutput.writeBoolean(isFrozen);
+		dataOutput.writeDouble(facilityCost);
+		dataOutput.writeDouble(alphaAtFacilityOpen);
+		
 		dataOutput.writeInt(this.receivedFreezeMessagesFrom.size());
 
-		Iterator iter = this.receivedFreezeMessagesFrom.iterator();
+		Iterator<Double> iter = this.receivedFreezeMessagesFrom.iterator();
 		
 		while(iter.hasNext()) {
-			double tmp = (Double) iter.next();
+			double tmp = iter.next();
 			dataOutput.writeDouble(tmp);
 		}
 

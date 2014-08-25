@@ -23,13 +23,17 @@ public class LubysAlgorithmOutputFormat extends TextVertexOutputFormat<LongWrita
 		protected Text convertVertexToLine(Vertex<LongWritable, LubysAlgorithmVertexValue, FloatWritable, ?> vertex) throws IOException {
 			
 			boolean vertexIncluded = vertex.getValue().getVertexIncluded();
-			if(vertexIncluded==true) {
+			String vertexState = vertex.getValue().getVertexState().toString();
+			
+			if(vertexState.equals("inS")) {
 				StringBuilder sb = new StringBuilder();
 				sb.append(vertex.getId());
+				sb.append(":");
+				sb.append(vertex.getValue().getVertexState());
 				return new Text(sb.toString());
 			}
 			else {
-				return null;	
+				return null;
 			}
 		}
 	}

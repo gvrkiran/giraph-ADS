@@ -264,6 +264,8 @@ public class FacilityLocationADSWeighted extends
 			}
 		}
 
+		getValue().setADS(vertexADS);
+		getValue().setPrevIterAdded(prevIterAdded);
 		System.out.println("Node id " + getId().get() + " voted to halt");
 		voteToHalt();
 	}
