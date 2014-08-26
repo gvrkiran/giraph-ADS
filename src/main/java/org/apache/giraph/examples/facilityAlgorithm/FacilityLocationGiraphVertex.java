@@ -107,6 +107,7 @@ Vertex<LongWritable, FacilityLocationGiraphVertexValue,FloatWritable, DoublePair
 		boolean phase = this.<BooleanWritable>getAggregatedValue(PHASE).get();
 		double facilityCost = getValue().getFacilityCost();
 		double vertexId = getId().get();
+		double t_i = getValue().getTi();
 		
 		Set<Double> frozenClients = this.<MapWritable>getAggregatedValue(FROZEN_CLIENTS).get();
 		Set<Double> openFacilities = this.<MapWritable>getAggregatedValue(OPEN_FACILITIES).get();
@@ -116,13 +117,15 @@ Vertex<LongWritable, FacilityLocationGiraphVertexValue,FloatWritable, DoublePair
 		Map<Double, String> vertexADS = LoadADSFromFile();
 		
 		if(phase==true) { // run computation to open facilities
-			double neighborhoodSize = 0.0, t_i = 0.0;
+			double neighborhoodSize = 0.0;
 			String ADS = vertexADS.get(vertexId);
 		
 			for(int i=0; i<alpha; i+=distanceStepSize) {
 				neighborhoodSize = getNeighborhoodSize(ADS,frozenClients,i); // only consider those nodes that are not frozen in the i-neighborhood.
 				t_i += neighborhoodSize * ((1 + FacilityLocationGiraphMasterCompute.EPS)*alpha - i) - max(0, (alpha-i));
 			}
+			
+			getValue().setTi(t_i);
 		
 			if(t_i >= facilityCost) { // open facility
 				getValue().setIsFacilityOpen();
@@ -147,27 +150,30 @@ Vertex<LongWritable, FacilityLocationGiraphVertexValue,FloatWritable, DoublePair
 			for (DoublePairWritable message: messages) { // if the vertex receives multiple messages, only propagate the one with the highest remaining distance
 				id = message.getFirst();
 				remaining_distance = message.getSecond();
+				
+				/*
 				if(maxDist < remaining_distance) {
 					maxDist = remaining_distance;
 					maxId = id;
 				}
-			}
+				*/
 			
-			if(receivedFreezeMessagesFrom.contains(maxId)==false && maxId!=getId().get()) { // if the vertex already hasnt received a message from this id.. and self loop 
-				receivedFreezeMessagesFrom.add(maxId);
-				frozenClients.add((double) getId().get());
-				aggregate(FROZEN_CLIENTS,new MapWritable().getMapWritable(frozenClients));
-				remaining_distance = maxDist - 1; // un-weighted case
-				if(remaining_distance>=0) {
-					aggregate(PHASE, new BooleanWritable(false));
-					for (Edge<LongWritable, FloatWritable> edge : getEdges()) {
-						DoublePairWritable dpw = new DoublePairWritable(maxId, remaining_distance);
-						sendMessage(edge.getTargetVertexId(), dpw);
+				if(receivedFreezeMessagesFrom.contains(id)==false && id!=getId().get()) { // if the vertex already hasnt received a message from this id.. and self loop 
+					receivedFreezeMessagesFrom.add(id);
+					frozenClients.add((double) getId().get());
+					aggregate(FROZEN_CLIENTS,new MapWritable().getMapWritable(frozenClients));
+					remaining_distance = maxDist - 1; // un-weighted case
+					if(remaining_distance>=0) {
+						aggregate(PHASE, new BooleanWritable(false));
+						for (Edge<LongWritable, FloatWritable> edge : getEdges()) {
+							DoublePairWritable dpw = new DoublePairWritable(id, remaining_distance);
+							sendMessage(edge.getTargetVertexId(), dpw);
+						}
 					}
-				}
-				else {
-					aggregate(PHASE, new BooleanWritable(true));
-					voteToHalt();
+					else {
+						aggregate(PHASE, new BooleanWritable(true));
+						voteToHalt();
+					}
 				}
 			}
 		}

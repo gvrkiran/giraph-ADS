@@ -21,6 +21,7 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 
 	public int phase_degree = -1;
 	public int phase_conflict = -1;
+	public int phase_selection = -1;
 	public static String PHASE = "degree"; // IntSumAggregator contains mapping from int to phase - 1 = degree, 2 = ..
 	public static String REMAINING_UNKNOWN_VERTICES = "";
 	// public enum PHASE {DEGREE, SELECTION, CONFLICT}; // contains which function to run
@@ -96,7 +97,7 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 			}
 			// if(minValue!=getValue().get()) { // if one of the neighbors has a minimum value less than the value of this node, send it to the neighbors
 				for (Edge<LongWritable, FloatWritable> edge : getEdges()) {
-					DoublePairWritable dpw = new DoublePairWritable(minId, minValue);
+					DoublePairWritable dpw = new DoublePairWritable(getId().get(), getValue().getVertexValue());
 					sendMessage(edge.getTargetVertexId(), dpw);
 				}
 			// }
@@ -150,7 +151,6 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 		
 		else if(phase.equals("selection")) { // Selection step: Takes one superstep. Each vertex v sets its type to TentativelyInS with probability 1/(2×degree(v)),
 											// then notifies its neighbors with a message containing its ID.
-
 			int degree = getValue().getVertexDegree();
 			degree = 2*degree;
 			Random randomGenerator = new Random();
@@ -161,7 +161,7 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 					DoublePairWritable dpw = new DoublePairWritable(getId().get(), getValue().getVertexValue());
 					sendMessage(edge.getTargetVertexId(), dpw);
 				}
-			}
+			}		
 		}
 		
 		else if(phase.equals("conflict_resolution")) {

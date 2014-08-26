@@ -20,6 +20,7 @@ public class FacilityLocationGiraphVertexValue implements Writable {
 	public boolean isFrozen = false;
 	public boolean isFacilityOpen = false;
 	public double facilityCost = 0;
+	public double t_i = 0;
 	public Set<Double> receivedFreezeMessagesFrom = new HashSet<Double>();
 	
 	/** Default constructor for reflection */
@@ -66,6 +67,14 @@ public class FacilityLocationGiraphVertexValue implements Writable {
 	
 	public double getAlphaAtFacilityOpen() {
 		return alphaAtFacilityOpen;
+	}
+	
+	public void setTi(double t_i) {
+		this.t_i = t_i;
+	}
+	
+	public double getTi() {
+		return this.t_i;
 	}
 	
 	@Override
