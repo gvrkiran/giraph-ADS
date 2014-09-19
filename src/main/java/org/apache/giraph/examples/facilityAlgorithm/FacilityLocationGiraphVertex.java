@@ -114,7 +114,7 @@ Vertex<LongWritable, FacilityLocationGiraphVertexValue,FloatWritable, DoublePair
 		
 		Set<Double> receivedFreezeMessagesFrom = getValue().getReceivedFreezeMessagesFrom(); // add vertices which have already been seen
 		
-		Map<Double, String> vertexADS = LoadADSFromFile();
+		Map<Double, String> vertexADS = LoadADSFromFile(); // Loaded in every superstep -- not necessary?
 		
 		if(phase==true) { // run computation to open facilities
 			double neighborhoodSize = 0.0;
@@ -125,7 +125,7 @@ Vertex<LongWritable, FacilityLocationGiraphVertexValue,FloatWritable, DoublePair
 				t_i += neighborhoodSize * ((1 + FacilityLocationGiraphMasterCompute.EPS)*alpha - i) - max(0, (alpha-i));
 			}
 			
-			getValue().setTi(t_i);
+			getValue().setTi(t_i); // save the value of t_i for each vertex
 		
 			if(t_i >= facilityCost) { // open facility
 				getValue().setIsFacilityOpen();
@@ -147,7 +147,7 @@ Vertex<LongWritable, FacilityLocationGiraphVertexValue,FloatWritable, DoublePair
 				}
 			}
 			
-			for (DoublePairWritable message: messages) { // if the vertex receives multiple messages, only propagate the one with the highest remaining distance
+			for (DoublePairWritable message: messages) { // 
 				id = message.getFirst();
 				remaining_distance = message.getSecond();
 				
@@ -162,15 +162,20 @@ Vertex<LongWritable, FacilityLocationGiraphVertexValue,FloatWritable, DoublePair
 					receivedFreezeMessagesFrom.add(id);
 					frozenClients.add((double) getId().get());
 					aggregate(FROZEN_CLIENTS,new MapWritable().getMapWritable(frozenClients));
-					remaining_distance = maxDist - 1; // un-weighted case
-					if(remaining_distance>=0) {
-						aggregate(PHASE, new BooleanWritable(false));
-						for (Edge<LongWritable, FloatWritable> edge : getEdges()) {
+					
+					int flag = 0;
+					for (Edge<LongWritable, FloatWritable> edge : getEdges()) {
+						remaining_distance = remaining_distance - 1; // un-weighted case
+						// remaining_distance = remaining_distance - getEdgeValue(getId()).get(); // for weighted case
+						if(remaining_distance>=0) {
+							flag = 1;
+							aggregate(PHASE, new BooleanWritable(false));
 							DoublePairWritable dpw = new DoublePairWritable(id, remaining_distance);
 							sendMessage(edge.getTargetVertexId(), dpw);
 						}
 					}
-					else {
+					
+					if(flag==0) {
 						aggregate(PHASE, new BooleanWritable(true));
 						voteToHalt();
 					}

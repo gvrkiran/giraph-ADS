@@ -14,7 +14,7 @@ public class FacilityLocationGiraphMasterCompute extends DefaultMasterCompute {
 	
 	double alpha = 1.0; // some initial value CHANGE to gamma/(m^2 * (1+eps))
 	static double EPS = 0.02; // some value. CHANGE later
-	double num_vertices = getTotalNumVertices(); // CHANGE
+	double num_vertices = getTotalNumVertices();
 	
 	@Override
     public void initialize() throws InstantiationException, IllegalAccessException {
