@@ -25,6 +25,8 @@ public class LubysAlgorithmMasterCompute extends DefaultMasterCompute {
 	@Override
 	public void compute() {
 		
+		System.out.println("In Master for superstep " + getSuperstep());
+		
 		String phase = getAggregatedValue(LubysAlgorithm.PHASE).toString();
 		
 		if(getSuperstep()==0) {

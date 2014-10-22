@@ -30,7 +30,7 @@ public class FacilityLocationADS extends
 	Vertex<LongWritable, FacilityLocationADSVertexValue,FloatWritable, DoublePairWritable> {
 	/** the number of elements to consider in the bottom k sketch $k$ */
 	public static final IntConfOption BOTTOM_K =
-			new IntConfOption("FacilityLocationADS.bottom_k", 3);
+			new IntConfOption("FacilityLocationADS.bottom_k", 20);
 	/** Class logger */
 	private static final Logger LOG =
 			Logger.getLogger(FacilityLocationADS.class);
