@@ -29,7 +29,7 @@ import org.apache.log4j.Logger;
 public class FacilityLocationADS extends
 	Vertex<LongWritable, FacilityLocationADSVertexValue,FloatWritable, DoublePairWritable> {
 	/** the number of elements to consider in the bottom k sketch $k$ */
-	public static final IntConfOption BOTTOM_K =
+	public static final IntConfOption BOTTOM_K = 
 			new IntConfOption("FacilityLocationADS.bottom_k", 20);
 	/** Class logger */
 	private static final Logger LOG =
@@ -44,7 +44,7 @@ public class FacilityLocationADS extends
 
 		int bottom_k = BOTTOM_K.get(getConf());
 		vertexADS = getValue().getADS();
-		System.out.println("Superstep " + getSuperstep() + " vertex id " + getId().toString());
+		System.out.println("Superstep " + getSuperstep() + " vertex id " + getId().toString() + " bottom_k " + bottom_k);
 		System.out.println("ADS " + vertexADS.keySet());
 		// System.out.println("Superstep " + getSuperstep() + " vertex id " + getId().toString() + " Size " + vertexADS.size() + " Bottom k " + bottom_k);
 		

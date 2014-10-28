@@ -187,7 +187,7 @@ public class FacilityLocationADSWeighted extends
 		Map<Double, Double> prevIterAdded = getValue().getPrevIterAdded();
 		Map<Double, Double> vertexADS = getValue().getADS();
 		
-		System.out.println("Superstep " + getSuperstep() + " vertex id " + getId().toString());
+		System.out.println("Superstep " + getSuperstep() + " vertex id " + getId().toString() + " bottom_k " + bottom_k);
 		System.out.println("ADS " + vertexADS.keySet() + " Prev iter added " + prevIterAdded.keySet());
 		
 		// if(prevIterAdded.size()==0)

@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import org.apache.giraph.conf.IntConfOption;
+import org.apache.giraph.conf.StrConfOption;
 import org.apache.giraph.edge.Edge;
 import org.apache.giraph.examples.ads.DoublePairWritable;
 import org.apache.giraph.graph.Vertex;
@@ -24,12 +26,17 @@ import org.apache.hadoop.io.LongWritable;
 public class FacilityLocationGiraphVertex extends
 Vertex<LongWritable, FacilityLocationGiraphVertexValue,FloatWritable, DoublePairWritable> {
 
-	// String ADSFile = "/user/kiran/ADS/output_ADS_5.txt";
-	// String IdToHashMapping = "/user/kiran/Mapping/input_ADS.txt";
-	String ADSFile = "/users/kiran/workspace/giraph-test32/ADSTestWeighted/output_ADS_london_10.txt";
-	String IdToHashMapping = "/users/kiran/workspace/giraph-test32/ADSTestWeighted/input_ADS_london.txt";
+	// String ADSFile = "/users/kiran/workspace/giraph-test32/ADSTestWeighted/output_ADS_5.txt";
+	// String IdToHashMapping = "/users/kiran/workspace/giraph-test32/ADSTestWeighted/input_ADS.txt";
+	// String ADSFile = "/users/kiran/workspace/giraph-test32/ADSTestWeighted/output_ADS_flight_5.txt";
+	// String IdToHashMapping = "/users/kiran/workspace/giraph-test32/ADSTestWeighted/input_ADS_flight.txt";
 	
-	public static int ADS_BOTTOM_K = 10;
+	public static final StrConfOption ADS_FILE = new StrConfOption("FacilityLocationGiraphVertex.ADSFile", "");
+	public static final StrConfOption ID_TO_HASH_MAPPING = new StrConfOption("FacilityLocationGiraphVertex.IdToHashMapping", "");
+	public static final IntConfOption ADS_BOTTOM_K = new IntConfOption("FacilityLocationGiraphVertex.bottom_k", 5);
+	public static final StrConfOption WEIGHTED_FLAG = new StrConfOption("FacilityLocationGiraphVertex.weightedFlag",""); // 0=unweighted, 1=weighted
+	
+	// public static int ADS_BOTTOM_K = 5;
 	
 	public static String MAX_AGG_GAMMA = "maxGamma"; // contains the maximum value of facility cost at superstep 0.
 	public static String DIST_ALPHA = "distanceAlpha";
@@ -37,13 +44,11 @@ Vertex<LongWritable, FacilityLocationGiraphVertexValue,FloatWritable, DoublePair
 	public static String OPEN_FACILITIES = "openFacilities";
 	public static String PHASE = "phase"; // contains which function to run
 	public static String PHASE_SWITCH = "phaseSwitch"; // aggregator to decide if we have to switch the phase
-	// public double distanceStepSize = 1; // 1 for un-weighted, SET accordingly for weighted case.
-	public double distanceStepSize = Math.round(1 + FacilityLocationGiraphMasterCompute.EPS); // for weighted case.
 	
 	Map<Double, String> vertexADS = new HashMap<Double, String>();
 	int flag_freeze = 0;
 	
-	private Map<Double,String> LoadADSFromFile() throws NumberFormatException, IOException { // load ADS from file
+	private Map<Double,String> LoadADSFromFile(String ADSFile, String IdToHashMapping) throws NumberFormatException, IOException { // load ADS from file
 		BufferedReader br = new BufferedReader(new FileReader(IdToHashMapping));
 		String line = null;
 		String[] line_split = null;
@@ -68,6 +73,7 @@ Vertex<LongWritable, FacilityLocationGiraphVertexValue,FloatWritable, DoublePair
 			String out = "";
 			for(int i=0;i<line_split1.length;i++) {
 				String[] tmp = line_split1[i].split(":");
+				System.out.println();
 				String key = idToHash.get(Double.parseDouble(tmp[0])).toString() + ":" + tmp[1];				
 				out += key + ";";
 			}
@@ -78,7 +84,7 @@ Vertex<LongWritable, FacilityLocationGiraphVertexValue,FloatWritable, DoublePair
 		return vertexADS;
 	}
 	
-	private double getNeighborhoodSize(String ADS, Set<Double> frozenClients, double distance) {
+	private double getNeighborhoodSize(String ADS, Set<Double> frozenClients, double distance, int bottom_k) {
 		double neighborhoodSize = 0.0;
 		Map<Double,Double> currentADS = new TreeMap<Double, Double>();
 		
@@ -87,15 +93,16 @@ Vertex<LongWritable, FacilityLocationGiraphVertexValue,FloatWritable, DoublePair
 			String[] tmp1 = tmp[i].split(":");
 			double key = Double.parseDouble(tmp1[0]);
 			double value = Double.parseDouble(tmp1[1]);
-			if(!frozenClients.contains(key)) {
+			if(!frozenClients.contains(key) && value<=distance) {
 				currentADS.put(key,value);
 			}
 		}
 		
 		// List<Double> vertexADS1 = (List<Double>) currentADS.keySet();
 		List<Double> vertexADS1 = new ArrayList<Double>(currentADS.keySet());
-		if(vertexADS1.size()>ADS_BOTTOM_K) {
-			neighborhoodSize = (ADS_BOTTOM_K-1)/currentADS.get(vertexADS1.get(ADS_BOTTOM_K));
+		System.out.println("ADS actual size " + tmp.length + " frozen clients " + frozenClients.size() + " ADS current size " + vertexADS1.size());
+		if(vertexADS1.size()>bottom_k) {
+			neighborhoodSize = (bottom_k-1)/currentADS.get(vertexADS1.get(bottom_k));
 		}
 		else {
 			neighborhoodSize = vertexADS1.size();
@@ -119,12 +126,30 @@ Vertex<LongWritable, FacilityLocationGiraphVertexValue,FloatWritable, DoublePair
 		
 		System.out.println("Came here in superstep " + getSuperstep() + " vertex id " + getId().get() + " flag_freeze" + flag_freeze);
 		
+		int bottom_k = ADS_BOTTOM_K.get(getConf());
+		String ADSFile = ADS_FILE.get(getConf());
+		String IdToHashMapping = ID_TO_HASH_MAPPING.get(getConf());
+		String weightedFlag = WEIGHTED_FLAG.get(getConf());
+		
+		double distanceStepSize = 0;
+		
+		if(weightedFlag=="0") {
+			distanceStepSize = 1;
+		}
+		else {
+			distanceStepSize = Math.round(1 + FacilityLocationGiraphMasterCompute.EPS); // for weighted case.
+		}
+		// public double distanceStepSize = 1; // 1 for un-weighted, SET accordingly for weighted case.
+		
+		
 		double alpha = this.<DoubleWritable>getAggregatedValue(DIST_ALPHA).get();
 		boolean phase = this.<BooleanWritable>getAggregatedValue(PHASE).get();
 		
 		double facilityCost = getValue().getFacilityCost();
 		double vertexId = getId().get();
 		double t_i = getValue().getTi();
+		
+		System.out.println("Parameters: bottom_k " + bottom_k + " ADSFile " + ADSFile + " IdToHashMapping " + IdToHashMapping + " WeightedFlag " + weightedFlag);
 	
 		/*
 		Set<Double> frozenClients = new HashSet<Double>();
@@ -141,7 +166,7 @@ Vertex<LongWritable, FacilityLocationGiraphVertexValue,FloatWritable, DoublePair
 		System.out.println("Came here in compute alpha " + alpha + " phase " + phase + " facilityCost " + facilityCost + " t_i " + t_i + " phase_switch size " + phaseSwitch.size());
 		
 		if(getSuperstep()==0) {
-			vertexADS = LoadADSFromFile();
+			vertexADS = LoadADSFromFile(ADSFile, IdToHashMapping);
 			aggregate(MAX_AGG_GAMMA, new DoubleWritable(facilityCost));
 		}
 		
@@ -150,7 +175,7 @@ Vertex<LongWritable, FacilityLocationGiraphVertexValue,FloatWritable, DoublePair
 			String ADS = vertexADS.get(vertexId);
 		
 			for(int i=0; i<alpha; i+=distanceStepSize) {
-				neighborhoodSize = getNeighborhoodSize(ADS,frozenClients,i); // only consider those nodes that are not frozen in the i-neighborhood.
+				neighborhoodSize = getNeighborhoodSize(ADS,frozenClients,i,bottom_k); // only consider those nodes that are not frozen in the i-neighborhood.
 				t_i += neighborhoodSize * ((((1 + FacilityLocationGiraphMasterCompute.EPS)*alpha) - i) - max(0, (alpha-i)));
 				System.out.println("Ball radius " + i + " Neighborhood size " + neighborhoodSize + " t_i " + t_i);
 			}
@@ -203,8 +228,10 @@ Vertex<LongWritable, FacilityLocationGiraphVertexValue,FloatWritable, DoublePair
 						System.out.println("Received freeze message from " + id + " in vertex " + vertexId + " " + remaining_distance);
 
 						for (Edge<LongWritable, FloatWritable> edge : getEdges()) {
-							// remaining_distance = remaining_distance - 1; // un-weighted case
-							remaining_distance = remaining_distance - edge.getValue().get(); // for weighted case
+							if(weightedFlag=="0")
+								remaining_distance = remaining_distance - 1; // un-weighted case
+							else
+								remaining_distance = remaining_distance - edge.getValue().get(); // for weighted case
 							System.out.println("edge between " + vertexId + " and " + edge.getTargetVertexId() + " value " + edge.getValue().get() + " remaining " + remaining_distance);
 							if(remaining_distance>=0) {
 								flag = 1;

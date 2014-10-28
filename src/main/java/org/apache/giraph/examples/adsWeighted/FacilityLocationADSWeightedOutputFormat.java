@@ -32,7 +32,7 @@ public class FacilityLocationADSWeightedOutputFormat extends TextVertexOutputFor
 		protected Text convertVertexToLine(Vertex<LongWritable, FacilityLocationADSWeightedVertexValue, FloatWritable, ?> vertex) throws IOException {
 			StringBuilder sb = new StringBuilder();
 			sb.append(vertex.getId());
-			sb.append(" \t");
+			sb.append("\t");
 			
 			// ArrayList<Double> vertexADS = vertex.getValue().getADS();
 			Map<Double, Double> vertexADS = vertex.getValue().getADS();

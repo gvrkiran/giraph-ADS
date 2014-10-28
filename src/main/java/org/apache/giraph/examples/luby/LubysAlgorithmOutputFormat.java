@@ -28,8 +28,8 @@ public class LubysAlgorithmOutputFormat extends TextVertexOutputFormat<LongWrita
 			if(vertexState.equals("inS")) {
 				StringBuilder sb = new StringBuilder();
 				sb.append(vertex.getId());
-				sb.append(":");
-				sb.append(vertex.getValue().getVertexState());
+				// sb.append(":");
+				// sb.append(vertex.getValue().getVertexState());
 				return new Text(sb.toString());
 			}
 			else {

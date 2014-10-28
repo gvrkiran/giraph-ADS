@@ -58,16 +58,7 @@ public class FacilityLocationGiraphMasterCompute extends DefaultMasterCompute {
 		}
 		
 		else {
-			
-			boolean phase = this.<BooleanWritable>getAggregatedValue(FacilityLocationGiraphVertex.PHASE).get();
-			if(phase) { // only increment alpha in the facility opening phase
-				alpha = this.<DoubleWritable>getAggregatedValue(FacilityLocationGiraphVertex.DIST_ALPHA).get();
-				alpha = alpha * (1+EPS);
-				setAggregatedValue(FacilityLocationGiraphVertex.DIST_ALPHA, new DoubleWritable(alpha)); // increment alpha after every superstep
-			}
-			
-			System.out.println("Superstep no. " + getSuperstep() + " alpha " + alpha + " phase " + phase);
-			
+						
 			// double num_open_facilities = this.<MapWritable>getAggregatedValue(FacilityLocationGiraphVertex.OPEN_FACILITIES).getSize();
 			// double num_frozen_clients = this.<MapWritable>getAggregatedValue(FacilityLocationGiraphVertex.FROZEN_CLIENTS).getSize();
 			double num_halted = this.<MapWritable>getAggregatedValue(FacilityLocationGiraphVertex.PHASE_SWITCH).getSize();
@@ -82,10 +73,25 @@ public class FacilityLocationGiraphMasterCompute extends DefaultMasterCompute {
 			double total = set3.size();
 			
 			if(total<num_vertices && num_halted==num_vertices) { // if not all vertices have been frozen or facilities_opened, and all vertices have halted switch phase.
+				System.out.println("In MASTER PHASE TRUE1");
 				setAggregatedValue(FacilityLocationGiraphVertex.PHASE, new BooleanWritable(true));
 				setAggregatedValue(FacilityLocationGiraphVertex.PHASE_SWITCH, new MapWritable()); // empty the PHASE_SWITCH map.
+				alpha = this.<DoubleWritable>getAggregatedValue(FacilityLocationGiraphVertex.DIST_ALPHA).get();
+				alpha = alpha * (1+EPS);
+				setAggregatedValue(FacilityLocationGiraphVertex.DIST_ALPHA, new DoubleWritable(alpha)); // increment alpha after every superstep
 			}
 			
+			boolean phase = this.<BooleanWritable>getAggregatedValue(FacilityLocationGiraphVertex.PHASE).get();
+			double tmp = this.<MapWritable>getAggregatedValue(FacilityLocationGiraphVertex.PHASE_SWITCH).getSize();
+			System.out.println("Superstep no. " + getSuperstep() + " alpha " + alpha + " phase " + phase + " num halted " + tmp);
+			
+			if(phase) { // only increment alpha in the facility opening phase
+				System.out.println("In MASTER PHASE TRUE");
+				alpha = this.<DoubleWritable>getAggregatedValue(FacilityLocationGiraphVertex.DIST_ALPHA).get();
+				alpha = alpha * (1+EPS);
+				setAggregatedValue(FacilityLocationGiraphVertex.DIST_ALPHA, new DoubleWritable(alpha)); // increment alpha after every superstep
+			}
+					
 			phase = this.<BooleanWritable>getAggregatedValue(FacilityLocationGiraphVertex.PHASE).get();
 
 			System.out.println("HERE total " + total + " Num Vertices " + num_vertices + " phase " + phase);

@@ -32,28 +32,25 @@ public class FacilityLocationGiraphOutputFormat extends TextVertexOutputFormat<L
 		@Override
 		protected Text convertVertexToLine(Vertex<LongWritable, FacilityLocationGiraphVertexValue, FloatWritable, ?> vertex) throws IOException {
 			StringBuilder sb = new StringBuilder();
-			sb.append(vertex.getId());
-			sb.append(" \t");
+			// sb.append(vertex.getId());
+			// sb.append("\t");
 			
 			// ArrayList<Double> vertexADS = vertex.getValue().getADS();
 			Set<Double> vertexReceivedFreezeMessagesFrom = vertex.getValue().getReceivedFreezeMessagesFrom();
 
-			Iterator iter = vertexReceivedFreezeMessagesFrom.iterator();
-			
-			while(iter.hasNext()) {
-				double tmp = (Double) iter.next();
-				sb.append(tmp);
-				sb.append(";");
+			if(vertexReceivedFreezeMessagesFrom.size()!=0) {	
+				Iterator<Double> iter = vertexReceivedFreezeMessagesFrom.iterator();
+				
+				while(iter.hasNext()) {
+					double tmp = (Double) iter.next();
+					sb.append(vertex.getId());
+					sb.append(",");
+					sb.append(tmp);
+					sb.append(",1\n");
+				}
+				return new Text(sb.toString().trim());
 			}
-
-			/*
-			Iterator<Double> iterator = vertexADS.iterator();
-			while (iterator.hasNext()) {
-								
-			}
-			*/
-			
-			return new Text(sb.toString());
+			return null;
 		}
 		  
 	  }
