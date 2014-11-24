@@ -38,8 +38,7 @@ public class SimpleShortestPathsVertex extends
     FloatWritable, DoubleWritable> {
   /** The shortest paths id */
   public static final LongConfOption SOURCE_ID =
-      // new LongConfOption("SimpleShortestPathsVertex.sourceId", 3);
-		  null;
+      new LongConfOption("SimpleShortestPathsVertex.sourceId", 1);
   /** Class logger */
   private static final Logger LOG =
       Logger.getLogger(SimpleShortestPathsVertex.class);
@@ -74,7 +73,6 @@ public class SimpleShortestPathsVertex extends
           LOG.debug("Vertex " + getId() + " sent to " +
               edge.getTargetVertexId() + " = " + distance);
         }
-        // sendMessage(new LongWritable(2),new DoubleWritable(distance));
         sendMessage(edge.getTargetVertexId(), new DoubleWritable(distance));
       }
     }

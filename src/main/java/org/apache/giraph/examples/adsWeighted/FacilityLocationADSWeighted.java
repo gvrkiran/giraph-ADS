@@ -35,7 +35,7 @@ import org.apache.giraph.examples.ads.DoublePairWritable;
 		description = "Facility location for unweighted graphs using All distances sketches (ADS)."
 		)
 public class FacilityLocationADSWeighted extends
-	Vertex<LongWritable, FacilityLocationADSWeightedVertexValue,FloatWritable, DoublePairWritable> {
+	Vertex<LongWritable, FacilityLocationADSWeightedVertexValue, FloatWritable, DoublePairWritable> {
 	/** the number of elements to consider in the bottom k sketch $k$ */
 	public static final IntConfOption BOTTOM_K = 
 			new IntConfOption("FacilityLocationADSWeighted.bottom_k", 10);
@@ -47,6 +47,7 @@ public class FacilityLocationADSWeighted extends
 	// private Map<Double, Double> vertexADS = new HashMap<Double, Double>();
 	// private Map<Double, Double> prevIterAdded = new HashMap<Double, Double>();
 	
+	@SuppressWarnings("unchecked")
 	private static HashMap<Double, Double> sortByValues(Map<Double, Double> tempADS) { 
 		List list = new LinkedList(tempADS.entrySet());
 		// Defined Custom Comparator here
@@ -187,8 +188,8 @@ public class FacilityLocationADSWeighted extends
 		Map<Double, Double> prevIterAdded = getValue().getPrevIterAdded();
 		Map<Double, Double> vertexADS = getValue().getADS();
 		
-		System.out.println("Superstep " + getSuperstep() + " vertex id " + getId().toString() + " bottom_k " + bottom_k);
-		System.out.println("ADS " + vertexADS.keySet() + " Prev iter added " + prevIterAdded.keySet());
+		// System.out.println("Superstep " + getSuperstep() + " vertex id " + vertex.getId().toString() + " bottom_k " + bottom_k);
+		// System.out.println("ADS " + vertexADS.keySet() + " Prev iter added " + prevIterAdded.keySet());
 		
 		// if(prevIterAdded.size()==0)
 			// voteToHalt();
@@ -218,7 +219,7 @@ public class FacilityLocationADSWeighted extends
 					distance = entry.getValue() + edge.getValue().get();
 					DoublePairWritable dpw = new DoublePairWritable(hashReceived,distance);
 					// DoublePairADSWritable dpw = new DoublePairADSWritable(hashReceived,distance,getId().get(),0,vertexADS);
-					System.out.println("Sending message to " + edge.getTargetVertexId() + " message " + dpw.toString());
+					// System.out.println("Sending message to " + edge.getTargetVertexId() + " message " + dpw.toString());
 					sendMessage(edge.getTargetVertexId(), dpw);
 				}
 			}
@@ -229,7 +230,7 @@ public class FacilityLocationADSWeighted extends
 		
 		// process updates
 		for (DoublePairWritable message : messages) {
-			System.out.println("Received Message from " + message.toString());
+			// System.out.println("Received Message from " + message.toString());
 			double addToADS = 0;
 			double hash = message.getFirst();
 			double distance = message.getSecond();
@@ -253,9 +254,9 @@ public class FacilityLocationADSWeighted extends
 					prevIterAdded.put(hash,distance);
 					// System.out.println("Came to vertex: " + getId().get() + " ADS SIZE: " + vertexADS.size() + " prevIterAdded " + prevIterAdded.size() + " hash " + hash + " distance " + distance);
 					// Clean Up
-					System.out.println("ADS size before CleanUP " + vertexADS.size());
+					// System.out.println("ADS size before CleanUP " + vertexADS.size());
 					long startTime = System.nanoTime();
-					// vertexADS = CleanUP(vertexADS,distance,bottom_k);
+					vertexADS = CleanUP(vertexADS,distance,bottom_k);
 					// long endTime = System.nanoTime();
 					// long duration = endTime - startTime;
 					// System.out.println("ADS size after CleanUP " + vertexADS.size() + " . Time taken " + duration);
@@ -266,7 +267,7 @@ public class FacilityLocationADSWeighted extends
 
 		getValue().setADS(vertexADS);
 		getValue().setPrevIterAdded(prevIterAdded);
-		System.out.println("Node id " + getId().get() + " voted to halt");
+		// System.out.println("Node id " + vertex.getId().get() + " voted to halt");
 		voteToHalt();
 	}
 }

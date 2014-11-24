@@ -46,13 +46,13 @@ public class FacilityLocationGiraphOutputFormat extends TextVertexOutputFormat<L
 					sb.append(vertex.getId());
 					sb.append(",");
 					sb.append(tmp);
+					// sb.append("," + vertex.getValue().getAlphaAtFacilityOpen() + "\n");
 					sb.append(",1\n");
 				}
 				return new Text(sb.toString().trim());
 			}
 			return null;
 		}
-		  
 	  }
-	
+	  
 }

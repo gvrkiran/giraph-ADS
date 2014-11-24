@@ -15,27 +15,34 @@ import org.apache.hadoop.io.Text;
 public class LubysAlgorithmMasterCompute extends DefaultMasterCompute {
 		
 	int step_num = -1;
+	long startTime = 0, endTime = 0;
 	
 	@Override
 	public void initialize() throws InstantiationException, IllegalAccessException {
 		registerPersistentAggregator(LubysAlgorithm.PHASE, TextOverwriteAggregator.class);
 		registerPersistentAggregator(LubysAlgorithm.REMAINING_UNKNOWN_VERTICES, BooleanAndAggregator.class);
+		// startTime = System.currentTimeMillis();
 	}
 	
 	@Override
 	public void compute() {
 		
-		System.out.println("In Master for superstep " + getSuperstep());
+		// endTime = System.currentTimeMillis();
 		
 		String phase = getAggregatedValue(LubysAlgorithm.PHASE).toString();
+		
+		System.out.println("Superstep num. " + getSuperstep() + " phase " + phase);
 		
 		if(getSuperstep()==0) {
 			setAggregatedValue(LubysAlgorithm.PHASE, new Text("degree")); // set phase to 1 in the first superstep
 			setAggregatedValue(LubysAlgorithm.REMAINING_UNKNOWN_VERTICES, new BooleanWritable(true));
+			// System.out.println("Phase in superstep 0 " + getAggregatedValue(LubysAlgorithm.PHASE).toString());
 		}
 		
-		else if(getSuperstep()<=2 && phase.equals("degree"))
+		else if(getSuperstep()<=2 && phase.equals("degree")) {
 			step_num = 0;
+			// System.out.println("Phase in superstep 1 and 2 " + getAggregatedValue(LubysAlgorithm.PHASE).toString());
+		}
 		
 		else if(getSuperstep()>2 && step_num==0) {
 			setAggregatedValue(LubysAlgorithm.PHASE, new Text("selection"));

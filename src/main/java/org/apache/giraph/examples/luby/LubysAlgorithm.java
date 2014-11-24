@@ -36,6 +36,7 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 		if(superStepNum==0) {
 			for (Edge<LongWritable, FloatWritable> edge : getEdges()) {
 				DoublePairWritable dpw = new DoublePairWritable(getId().get(), getValue().getVertexValue());
+				// System.out.println("Sending message");
 				sendMessage(edge.getTargetVertexId(), dpw);
 			}
 		}
@@ -49,6 +50,7 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 				}
 				for (Edge<LongWritable, FloatWritable> edge : getEdges()) {
 					DoublePairWritable dpw = new DoublePairWritable(id, 1);
+					// System.out.println("Sending message");
 					sendMessage(edge.getTargetVertexId(), dpw);
 				}
 				receivedMessagesFrom.add(id);
@@ -83,7 +85,7 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 		}
 		*/
 		
-		System.out.println("hereeee! " + superStepNum);
+		// System.out.println("hereeee! " + superStepNum);
 		
 		if(superStepNum==0){ // receive messages and send the minimum
 			double minValue = getValue().getVertexValue(), minId = getId().get();
@@ -98,7 +100,16 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 			}
 			// if(minValue!=getValue().get()) { // if one of the neighbors has a minimum value less than the value of this node, send it to the neighbors
 				for (Edge<LongWritable, FloatWritable> edge : getEdges()) {
-					DoublePairWritable dpw = new DoublePairWritable(getId().get(), getValue().getVertexValue());
+					if(minValue<getValue().getVertexValue()) {
+						value = minValue;
+						id = minId;
+					}
+					else {
+						value = getValue().getVertexValue();
+						id = getId().get();
+					}
+					DoublePairWritable dpw = new DoublePairWritable(id, value);
+					// System.out.println("Sending message");
 					sendMessage(edge.getTargetVertexId(), dpw);
 				}
 			// }
@@ -120,6 +131,7 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 				getValue().setVertexIncluded();
 				for (Edge<LongWritable, FloatWritable> edge : getEdges()) {
 					DoublePairWritable dpw = new DoublePairWritable(minId, minValue);
+					// System.out.println("Sending message");
 					sendMessage(edge.getTargetVertexId(), dpw);
 				}
 				getValue().setVertexState("inS");
@@ -142,7 +154,7 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 		String phase = getAggregatedValue(PHASE).toString();
 		// boolean restartFlag = this.<BooleanWritable>getAggregatedValue(REMAINING_UNKNOWN_VERTICES).get();
 		
-		System.out.println("Super step: " + superStepNum + " phase " + phase);
+		// System.out.println("Super step: " + superStepNum + " phase " + phase + " --verte1x " + getId().get());
 		
 		if(phase.equals("degree")) {
 			// System.out.println("Vertex id " + getId().get());
@@ -152,7 +164,7 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 		
 		else if(phase.equals("selection")) { // Selection step: Takes one superstep. Each vertex v sets its type to TentativelyInS with probability 1/(2×degree(v)),
 											// then notifies its neighbors with a message containing its ID.
-			System.out.println("Super step: " + superStepNum + " phase " + phase + " entered");
+			// System.out.println("Super step: " + superStepNum + " phase " + phase + " entered");
 			int degree = getValue().getVertexDegree();
 			// System.out.println("Super step: " + superStepNum + " phase " + phase + " middle1 degree " + degree + " vertex id " + getId().get());
 			degree = 2*degree;
@@ -170,6 +182,7 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 					// System.out.println("Super step: " + superStepNum + " phase " + phase + " middle2");
 					for (Edge<LongWritable, FloatWritable> edge : getEdges()) {
 						DoublePairWritable dpw = new DoublePairWritable(getId().get(), getValue().getVertexValue());
+						// System.out.println("Sending message");
 						sendMessage(edge.getTargetVertexId(), dpw);
 					}
 					// System.out.println("Super step: " + superStepNum + " phase " + phase + " middle3");
@@ -179,7 +192,7 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 		}
 		
 		else if(phase.equals("conflict_resolution")) {
-			System.out.println("Super step: " + superStepNum + " phase " + phase + " entered");
+			// System.out.println("Super step: " + superStepNum + " phase " + phase + " entered");
 			phase_conflict += 1;
 			vertexState = getValue().getVertexState();
 			
@@ -188,7 +201,7 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 		}
 		
 		else if(phase.equals("not_in_s_discovery")) { // if the vertex receives a message in this phase, it becomes inactive and sets its state to notInS
-			System.out.println("Super step: " + superStepNum + " phase " + phase + " entered");
+			// System.out.println("Super step: " + superStepNum + " phase " + phase + " entered");
 			boolean flag = false;
 			for (DoublePairWritable message: messages) { // set flag to true if we receive any message from the neighbors
 				flag = true;
@@ -197,6 +210,7 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 				getValue().setVertexState("notInS");
 				for (Edge<LongWritable, FloatWritable> edge : getEdges()) {
 					DoublePairWritable dpw = new DoublePairWritable(getId().get(), getValue().getVertexValue());
+					// System.out.println("Sending message");
 					sendMessage(edge.getTargetVertexId(), dpw);
 				}
 				voteToHalt();
@@ -205,7 +219,7 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 		}
 		
 		else if(phase.equals("degree_adjusting")) { // every vertex of type "unknown" decreases its degree by the number of messages it receives
-			System.out.println("Super step: " + superStepNum + " phase " + phase + " entered");
+			// System.out.println("Super step: " + superStepNum + " phase " + phase + " entered");
 			if(getValue().getVertexState().equals("unknown")) {
 				int degree = getValue().getVertexDegree();
 				for (DoublePairWritable message: messages) {
@@ -217,7 +231,7 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 		
 		else if(phase.equals("check_restart")) { // if there is a vertex with state unknown, it will set the REMAINING_UNKNOWN_VERTICES boolean to false
 			if(getValue().getVertexState().equals("unknown")) {
-				System.out.println("Still unknown id " + getId().get());
+				// System.out.println("Still unknown id " + getId().get());
 				aggregate(REMAINING_UNKNOWN_VERTICES, new BooleanWritable(false));
 			}
 		}

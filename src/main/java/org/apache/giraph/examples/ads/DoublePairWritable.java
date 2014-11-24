@@ -3,7 +3,7 @@ package org.apache.giraph.examples.ads;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import org.apache.giraph.utils.IntPair;
+// import org.apache.giraph.utils.IntPair;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Writable;

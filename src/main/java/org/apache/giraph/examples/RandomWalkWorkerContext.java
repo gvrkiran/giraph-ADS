@@ -136,6 +136,7 @@ public class RandomWalkWorkerContext extends WorkerContext {
         LOG.error("Could not load local cache files: " + sourceFile, e);
       }
     }
+    
     return builder.build();
   }
 

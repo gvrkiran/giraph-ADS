@@ -81,10 +81,10 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-/*if[HADOOP_NON_JOBCONTEXT_IS_INTERFACE]*/
+/*if[HADOOP_NON_JOBCONTEXT_IS_INTERFACE]
 import org.apache.hadoop.mapreduce.JobContext;
-/*else[HADOOP_NON_JOBCONTEXT_IS_INTERFACE]*/
-// import org.apache.hadoop.mapreduce.task.JobContextImpl;
+else[HADOOP_NON_JOBCONTEXT_IS_INTERFACE]*/
+import org.apache.hadoop.mapreduce.task.JobContextImpl;
 /*end[HADOOP_NON_JOBCONTEXT_IS_INTERFACE]*/
 
 /**
@@ -131,14 +131,13 @@ public class
     VertexInputFormat<LongWritable, IntWritable, FloatWritable>
     inputFormat = configuration.createVertexInputFormat();
 /*if[HADOOP_NON_JOBCONTEXT_IS_INTERFACE]
- */
       List<InputSplit> splitArray =
           inputFormat.getSplits(
               new JobContext(new Configuration(), new JobID()), 1);
-/* else[HADOOP_NON_JOBCONTEXT_IS_INTERFACE]*/
-//      List<InputSplit> splitArray =
-//          inputFormat.getSplits(
-//              new JobContextImpl(new Configuration(), new JobID()), 1);
+else[HADOOP_NON_JOBCONTEXT_IS_INTERFACE]*/
+      List<InputSplit> splitArray =
+          inputFormat.getSplits(
+              new JobContextImpl(new Configuration(), new JobID()), 1);
 /*end[HADOOP_NON_JOBCONTEXT_IS_INTERFACE]*/
     ByteArrayOutputStream byteArrayOutputStream =
         new ByteArrayOutputStream();

@@ -10,13 +10,34 @@ import org.apache.hadoop.io.Text;
  * to this aggregator, its behavior is non-deterministic.
  */
 public class TextOverwriteAggregator extends BasicAggregator<Text> {
-  @Override
-  public void aggregate(Text value) {
-    getAggregatedValue().set(value);
-  }
 
-  @Override
-  public Text createInitialValue() {
-    return new Text("");
-  }
+	private Text value;
+
+	public TextOverwriteAggregator() {
+		value = createInitialValue();
+	}
+
+	public TextOverwriteAggregator(Text initialValue) {
+		value = initialValue;
+	}
+
+	@Override
+	public void aggregate(Text value) {
+		getAggregatedValue().set(value);
+	}
+
+	@Override
+	public Text createInitialValue() {
+		return new Text("");
+	}
+
+  	@Override
+  	public Text getAggregatedValue() {
+	  	return value;
+  	}
+
+  	@Override
+  	public void setAggregatedValue(Text value) {
+	  	this.value = value;
+  	}
 }
