@@ -36,7 +36,7 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 		if(superStepNum==0) {
 			for (Edge<LongWritable, FloatWritable> edge : getEdges()) {
 				DoublePairWritable dpw = new DoublePairWritable(getId().get(), getValue().getVertexValue());
-				// System.out.println("Sending message");
+				System.out.println("Sending message from " + " " + getId().get() + " to " + edge.getTargetVertexId());
 				sendMessage(edge.getTargetVertexId(), dpw);
 			}
 		}
@@ -50,7 +50,7 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 				}
 				for (Edge<LongWritable, FloatWritable> edge : getEdges()) {
 					DoublePairWritable dpw = new DoublePairWritable(id, 1);
-					// System.out.println("Sending message");
+					System.out.println("Sending message from " + " " + getId().get() + " to " + edge.getTargetVertexId());
 					sendMessage(edge.getTargetVertexId(), dpw);
 				}
 				receivedMessagesFrom.add(id);
@@ -100,6 +100,7 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 			}
 			// if(minValue!=getValue().get()) { // if one of the neighbors has a minimum value less than the value of this node, send it to the neighbors
 				for (Edge<LongWritable, FloatWritable> edge : getEdges()) {
+					/*
 					if(minValue<getValue().getVertexValue()) {
 						value = minValue;
 						id = minId;
@@ -108,8 +109,9 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 						value = getValue().getVertexValue();
 						id = getId().get();
 					}
-					DoublePairWritable dpw = new DoublePairWritable(id, value);
-					// System.out.println("Sending message");
+					*/
+					DoublePairWritable dpw = new DoublePairWritable(minId, minValue);
+					System.out.println("Sending message from " + " " + getId().get() + " to " + edge.getTargetVertexId());
 					sendMessage(edge.getTargetVertexId(), dpw);
 				}
 			// }
@@ -131,7 +133,7 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 				getValue().setVertexIncluded();
 				for (Edge<LongWritable, FloatWritable> edge : getEdges()) {
 					DoublePairWritable dpw = new DoublePairWritable(minId, minValue);
-					// System.out.println("Sending message");
+					System.out.println("Sending message from " + " " + getId().get() + " to " + edge.getTargetVertexId());
 					sendMessage(edge.getTargetVertexId(), dpw);
 				}
 				getValue().setVertexState("inS");
@@ -182,7 +184,7 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 					// System.out.println("Super step: " + superStepNum + " phase " + phase + " middle2");
 					for (Edge<LongWritable, FloatWritable> edge : getEdges()) {
 						DoublePairWritable dpw = new DoublePairWritable(getId().get(), getValue().getVertexValue());
-						// System.out.println("Sending message");
+						System.out.println("Sending message from " + " " + getId().get() + " to " + edge.getTargetVertexId());
 						sendMessage(edge.getTargetVertexId(), dpw);
 					}
 					// System.out.println("Super step: " + superStepNum + " phase " + phase + " middle3");
@@ -210,7 +212,7 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 				getValue().setVertexState("notInS");
 				for (Edge<LongWritable, FloatWritable> edge : getEdges()) {
 					DoublePairWritable dpw = new DoublePairWritable(getId().get(), getValue().getVertexValue());
-					// System.out.println("Sending message");
+					System.out.println("Sending message from " + " " + getId().get() + " to " + edge.getTargetVertexId());
 					sendMessage(edge.getTargetVertexId(), dpw);
 				}
 				voteToHalt();

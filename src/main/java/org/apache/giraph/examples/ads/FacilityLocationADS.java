@@ -4,10 +4,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.Map.Entry;
@@ -23,6 +26,8 @@ import org.apache.hadoop.io.FloatWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.log4j.Logger;
+
+import com.google.common.collect.Lists;
 
 /**
  * Demonstrates the basic Pregel ADS computation for neighborhood computation.
@@ -42,10 +47,11 @@ public class FacilityLocationADS extends
 	private static final Logger LOG =
 			Logger.getLogger(FacilityLocationADS.class);
 
-	// private Vertex<LongWritable, FacilityLocationADSVertexValue, FloatWritable, DoublePairWritable> vertex;
-	// private ArrayList<Double> vertexADS = new ArrayList<Double>();
-	private Map<Double, Double> vertexADS = new HashMap<Double, Double>();
+	// private Map<Double, Double> vertexADS = new HashMap<Double, Double>();
+	private Map<Double, ArrayList<Double>> vertexADSTmp = new HashMap<Double, ArrayList<Double>> ();
+	private double gVar = 0;
 	
+	/*
 	public static Map<Double, Double> CleanUP1(Map<Double, Double> vertexADS, int bottom_k) {
 		// for each d, keep only the bottom k entries in the ADS
 		
@@ -130,6 +136,13 @@ public class FacilityLocationADS extends
 			return finalADS;
 	}
 	
+	static class PQsort implements Comparator<Double> {
+		 
+		public int compare(Double one, Double two) {
+			return two > one ? 1 : -1;
+		}
+	}
+	
 	public static Map<Double, Double> CleanUP(Map<Double, Double> vertexADS, int bottom_k) {
 		// for each d, keep only the bottom k entries in the ADS
 		
@@ -185,28 +198,12 @@ public class FacilityLocationADS extends
 					}
 				}
 				
-				/*
-				System.out.println("Tmp Map size before " + tmpMap.get(i).size());
-				tmpMapCleaned.put(i,tmpList2);
-				System.out.println("Tmp Map size after " + tmpMapCleaned.get(i).size());
-				tmpList1 = tmpList;
-				*/
 				for(int j=0; j<tmpList2.size(); j++) {
 					finalADS.put(tmpList2.get(j), i);
 				}
 			}
 		}
 		
-		/*
-		for (Map.Entry<Double, List<Double>> entry : tmpMapCleaned.entrySet()) {
-			List<Double> tmpList3 = new ArrayList<Double>();
-			tmpList3 = entry.getValue();
-			
-			for(int j=0; j<tmpList3.size(); j++) {
-				finalADS.put(tmpList3.get(j), entry.getKey());
-			}
-		}
-		*/
 		
 		if(finalADS.size()==0) {// dont clean up if you are returning an empty ADS
 			return vertexADS;
@@ -214,25 +211,63 @@ public class FacilityLocationADS extends
 		else
 			return finalADS;
 	}
+	*/
+	
+	public ArrayList<Double> addCustom(ArrayList<Double> list1, double element1, int bottom_k) {
+		
+		if(list1.size()<bottom_k) {
+			list1.add(element1);
+			Collections.sort(list1);
+			return list1;
+		}
+		
+		else {
+			
+			Collections.sort(list1);
+			if(list1.get(list1.size()-1)>element1) {
+				gVar = 1;
+				list1.remove(list1.size()-1); // remove the kth element
+				Set<Double> set1 = new HashSet<Double>(list1);
+				set1.add(element1);
+				list1 = new ArrayList<Double>(set1);
+				// System.out.println("HEreee " + list1.size());
+			}
+			
+			Collections.sort(list1);
+			// list1 = (ArrayList<Double>) list1.subList(0, bottom_k-1);
+				
+			return list1;
+		}
+		// return list1;
+	}
 	
 	@Override
-	public void compute(
-			Iterable<DoublePairWritable> messages) {
+	public void compute(Iterable<DoublePairWritable> messages) {
 
 		int bottom_k = BOTTOM_K.get(getConf());
 		int cleanUPFreq = CLEANUP_FREQ.get(getConf());
-		vertexADS = getValue().getADS();
+		vertexADSTmp = getValue().getADSTmp();
+		double currentDistance = getValue().getCurrentDistance();
 		
-		// System.out.println("Superstep " + getSuperstep() + " vertex id " + vertex.getId().toString() + " bottom_k " + bottom_k);
+		ArrayList<Double> tmpList1 = vertexADSTmp.get(currentDistance);
+		currentDistance += 1; // increase by 1 hop in each superstep
+		
+		// System.out.println("Superstep " + getSuperstep() + " currentDistance " + currentDistance);
+		// vertexADS = getValue().getADS();
+
+		// PQsort pqs = new PQsort();
+		// PriorityQueue<Double> priorityQueue = new PriorityQueue<Double> (bottom_k, pqs); // a priority queue to keep the bottom k
+			
 		// System.out.println("ADS " + vertexADS.keySet());
 		// System.out.println("Superstep " + getSuperstep() + " vertex id " + getId().toString() + " Size " + vertexADS.size() + " Bottom k " + bottom_k);
 		
 		// Set<Double> temp = vertexADS.keySet();
 		// List<Double> vertexADS1 = new ArrayList<Double>(temp);
 		
-		List<Double> vertexADS1 = new ArrayList<Double>(vertexADS.keySet());
+		// List<Double> vertexADS1 = new ArrayList<Double>(vertexADS.keySet());
 		
-		Collections.sort(vertexADS1);
+		// Collections.sort(vertexADS1);
+		
 		// if(vertexADS1.size()==0)
 		//	voteToHalt();
 
@@ -249,42 +284,69 @@ public class FacilityLocationADS extends
 			for (Edge<LongWritable, FloatWritable> edge : getEdges()) {
 				// System.out.println("Edge " + edge.getTargetVertexId());
 				// DoublePairWritable dpw = new DoublePairWritable(hashAtK,0.0);
-				DoublePairWritable dpw = new DoublePairWritable(vertexADS1.get(0),0.0);
+				DoublePairWritable dpw = new DoublePairWritable(getValue().getHashValue(),currentDistance);
 				sendMessage(edge.getTargetVertexId(), dpw);
 			}
 		}
 		
+		/*
 		if(getSuperstep()%cleanUPFreq == 0) { // cleanup the ADS after every 10 supersteps, by only keeping the bottom-k
 			if(getSuperstep()!=0) {
 				// System.out.println("Cleanup (regular) in Superstep " + getSuperstep() + " Size of ADS before cleanup " + vertexADS.size());
-				vertexADS = CleanUP(vertexADS, bottom_k);
+				// vertexADS = CleanUP(vertexADS, bottom_k);
 				// System.out.println("Size of ADS after cleanup " + vertexADS.size());
 				// System.out.println("Size of ADS after cleanup1 " + CleanUP1(vertexADS,bottom_k).size());
 				// System.gc(); // cleanup the memory from all the tmpLists
 			}
 		}
+		*/
 
+		float addToADS = 0;
+		Set<Double> set1 = new HashSet<Double> ();
 		for (DoublePairWritable message : messages) {
 			// System.out.println("Message " + message.toString());
-			float addToADS = 0;
 			double hash = message.getFirst();
 			double distance = message.getSecond();
-
-			if(vertexADS1.size()>=bottom_k) { // if the received entry is less than the kth entry in the ADS
-				if(vertexADS1.get(bottom_k-1)>hash) {
+			addToADS = 0;
+			
+			// Collections.sort(tmpList1);
+			ArrayList<Double> tmpList2 = tmpList1;
+			// System.out.println("TmpList before " + tmpList1 + " hash " + hash);
+			tmpList1 = addCustom(tmpList1, hash, bottom_k);
+			// System.out.println("TmpList after " + tmpList1 + " hash " + hash);
+			
+			if(tmpList1.size()>=bottom_k) { // if the received entry is less than the kth entry in the ADS
+				// if(tmpList2.get(tmpList2.size()-1)<=hash) {
+				if(gVar==1) {
+					gVar = 0;
 					addToADS = 1;
+					set1 = new HashSet<Double>(tmpList2);
 				}
 			}
 			else { // if the ADS is still not of size k
 				addToADS = 1;
+				set1 = new HashSet<Double>(tmpList2);
 			}
 			
-			if(addToADS==1) {
+			if(addToADS==1 && set1.contains(hash)==false) {// if the hash was added to the ADS
+				for (Edge<LongWritable, FloatWritable> edge : getEdges()) { // send (r,d+1) to its neighbors
+					DoublePairWritable dpw = new DoublePairWritable(hash,currentDistance);
+					// System.out.println("Sending message to " + edge.getTargetVertexId() + " message " + dpw.toString());
+					sendMessage(edge.getTargetVertexId(), dpw);
+				}
+			}
+		}
+		
+		// if(addToADS==1) {// update ADS
 			// if(hash<hashAtK) {
 				// System.out.println("Came to vertex: " + getId().get() + " ADS SIZE: " + vertexADS.size() + " add to ADS " + addToADS + " hash " + hash + " distance " + distance);
-				distance += 1.0;
+				// distance += 1.0;
+		getValue().setCurrentDistance(currentDistance);
+		vertexADSTmp.put(currentDistance,tmpList1);
+		getValue().setADSTmp(vertexADSTmp);
+				/*
 				if(vertexADS.containsKey(hash)==false) {
-					vertexADS.put(hash,distance);
+					vertexADS.put(hash,currentDistance);
 					
 					if(vertexADS.size()>15000) { // some big number, CHANGE
 						// System.out.println("Cleanup in Superstep " + getSuperstep() + " for vertex " + getId().get() 
@@ -293,27 +355,15 @@ public class FacilityLocationADS extends
 						
 						// System.out.println("Size of ADS after cleanup " + CleanUP(vertexADS, bottom_k).size());
 						// System.out.println("Size of ADS after cleanup1 " + CleanUP1(vertexADS,bottom_k).size());
-						/*
-						if(tmp.size()==vertexADS.size()) {
-							vertexADS = CleanUP1(vertexADS, bottom_k);
-						}
-						else {
-							vertexADS = tmp;
-						}
-						*/
 						// System.gc(); // cleanup the memory from all the tmpLists
 						// System.out.println("Size of ADS after cleanup " + vertexADS.size());
 					}
-					
-					for (Edge<LongWritable, FloatWritable> edge : getEdges()) { // send (r,d+1) to its neighbors
-						DoublePairWritable dpw = new DoublePairWritable(hash,distance);
-						// System.out.println("Sending message to " + edge.getTargetVertexId() + " message " + dpw.toString());
-						sendMessage(edge.getTargetVertexId(), dpw);
-					}
-				}
-			}
+				*/	
+				// }
+			// }
+		if(getSuperstep()!=0) {
+			// System.out.println("Vertex id " + getId().get() + " voted to halt");
+			voteToHalt();
 		}
-
-		voteToHalt();
 	}
 }

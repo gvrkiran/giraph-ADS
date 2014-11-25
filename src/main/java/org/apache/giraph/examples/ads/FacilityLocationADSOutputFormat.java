@@ -34,7 +34,7 @@ public class FacilityLocationADSOutputFormat extends TextVertexOutputFormat<Long
 			sb.append(vertex.getId());
 			sb.append("\t");
 			
-			// ArrayList<Double> vertexADS = vertex.getValue().getADS();
+			/*
 			Map<Double, Double> vertexADS = vertex.getValue().getADS();
 
 			for (Entry<Double, Double> entry : vertexADS.entrySet()) {
@@ -43,13 +43,20 @@ public class FacilityLocationADSOutputFormat extends TextVertexOutputFormat<Long
 				sb.append(entry.getValue());
 				sb.append(";");
 			}
-
-			/*
-			Iterator<Double> iterator = vertexADS.iterator();
-			while (iterator.hasNext()) {
-								
-			}
 			*/
+
+			Map <Double, ArrayList<Double>> vertexADSTmp = vertex.getValue().getADSTmp();
+			
+			for (Entry<Double, ArrayList<Double>> entry : vertexADSTmp.entrySet()) {
+				double distance = entry.getKey();
+				ArrayList<Double> tmp = entry.getValue();
+				for(int i=0; i<tmp.size(); i++) {
+					sb.append(tmp.get(i));
+					sb.append(":");
+					sb.append(distance);
+					sb.append(";");
+				}
+			}
 			
 			return new Text(sb.toString());
 		}
