@@ -22,7 +22,6 @@ public class DoublePairWritable extends DoublePair implements Writable, Configur
     	// this.first = fst;
     	// this.second = snd;
         super(fst, snd);
-    	
     }
 
     @Override

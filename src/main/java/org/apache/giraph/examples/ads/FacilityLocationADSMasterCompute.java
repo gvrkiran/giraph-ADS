@@ -14,7 +14,10 @@ public class FacilityLocationADSMasterCompute extends DefaultMasterCompute{
 	@Override
 	public void compute() {
 		endTime = System.currentTimeMillis();
-		System.out.println("Superstep num. " + getSuperstep() + " Time taken " + (endTime-startTime)/1000 + " seconds");
+		int maxDistance = FacilityLocationADS.MAX_DISTANCE.get(getConf());
+		System.out.println("Superstep num. " + getSuperstep() + " maxDistance " + maxDistance);
+		if(getSuperstep()>maxDistance)
+			haltComputation();
 	}
 
 }

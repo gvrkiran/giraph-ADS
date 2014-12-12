@@ -48,6 +48,7 @@ Vertex<LongWritable, FacilityLocationGiraphVertexValue, FloatWritable, DoublePai
 	public static final IntConfOption ADS_BOTTOM_K = new IntConfOption("FacilityLocationGiraphVertex.bottom_k", 5);
 	public static final StrConfOption WEIGHTED_FLAG = new StrConfOption("FacilityLocationGiraphVertex.weightedFlag",""); // 0=unweighted, 1=weighted
 	public static final FloatConfOption EPSILON = new FloatConfOption("FacilityLocationGiraphVertex.EPS",0.2f);
+	public static final IntConfOption NUM_MACHINES = new IntConfOption("FacilityLocationGiraphVertex.numMachines",100);
 	// public static int ADS_BOTTOM_K = 5;
 	
 	public static String MAX_AGG_GAMMA = "maxGamma"; // contains the maximum value of facility cost at superstep 0.
@@ -58,8 +59,9 @@ Vertex<LongWritable, FacilityLocationGiraphVertexValue, FloatWritable, DoublePai
 	public static String PHASE_SWITCH = "phaseSwitch"; // aggregator to decide if we have to switch the phase
 	public static float EPS = 0.2f;
 	
-	Map<Double, String> vertexADS = new HashMap<Double, String>();
+	Map<Double, Double> vertexMapping = new HashMap<Double, Double>();
 	int flag_freeze = 0;
+	String ADS = null;
 	
 	private Map<Double,String> LoadADSFromFile(String ADSFile, String IdToHashMapping) throws NumberFormatException, IOException { // load ADS from file
 		
@@ -164,7 +166,10 @@ Vertex<LongWritable, FacilityLocationGiraphVertexValue, FloatWritable, DoublePai
 		String[] tmp = ADS.split(";");
 		for(int i=0;i<tmp.length;i++) { // first filter out only the non frozen clients
 			String[] tmp1 = tmp[i].split(":");
+			if(tmp1.length!=2)
+				continue;
 			double key = Double.parseDouble(tmp1[0]);
+			key = vertexMapping.get(key);
 			double value = Double.parseDouble(tmp1[1]);
 			if(!frozenClients.contains(key) && value<=distance) {
 				currentADS.put(key,value);
@@ -200,6 +205,8 @@ Vertex<LongWritable, FacilityLocationGiraphVertexValue, FloatWritable, DoublePai
 		// System.out.println("Came here in superstep " + getSuperstep() + " vertex id " + getId().get() + " flag_freeze" + flag_freeze);
 		
 		int bottom_k = ADS_BOTTOM_K.get(getConf());
+		
+		// System.out.println("Vertex ID " + getId().get() + " ADS size " + getValue().getADS().split(";").length);
 		// String ADSFile = ADS_FILE.get(getConf());		
 		// String IdToHashMapping = ID_TO_HASH_MAPPING.get(getConf());
 		String weightedFlag = WEIGHTED_FLAG.get(getConf());
@@ -241,14 +248,16 @@ Vertex<LongWritable, FacilityLocationGiraphVertexValue, FloatWritable, DoublePai
 		
 		if(getSuperstep()==0) {
 			// vertexADS = LoadADSFromFile(ADSFile, IdToHashMapping);
-			vertexADS = ((FacilityLocationGiraphWorkerContext) getWorkerContext()).getADS();
+			//// vertexADS = ((FacilityLocationGiraphWorkerContext) getWorkerContext()).getADS();
 			// System.out.println("Superstep 0 in compute of vertex " + getId().get() + " vertexADS size " + vertexADS.size());
+			vertexMapping = ((FacilityLocationGiraphWorkerContext) getWorkerContext()).getMapping();
+			ADS = getValue().getADS();
 			aggregate(MAX_AGG_GAMMA, new DoubleWritable(facilityCost));
 		}
 		
 		if(phase==true) { // run computation to open facilities
 			double neighborhoodSize = 0.0;
-			String ADS = vertexADS.get(vertexId);
+			// String ADS = vertexADS.get(vertexId);
 		
 			for(int i=0; i<alpha; i+=distanceStepSize) {
 				neighborhoodSize = getNeighborhoodSize(ADS,frozenClients,i,bottom_k); // only consider those nodes that are not frozen in the i-neighborhood.

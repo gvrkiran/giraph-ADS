@@ -40,9 +40,9 @@ public class ParallelMISVertex extends Vertex<LongWritable, LubysAlgorithmVertex
 			for (Edge<LongWritable, FloatWritable> edge : getEdges()) {
 			
 					DoublePairWritable dpw = new DoublePairWritable(minId, minValue);
-					System.out.println("Sending message in phase conflictResolution from " + minId 
-							+ " to " + edge.getTargetVertexId() + " in superStep " + getSuperstep()
-							+ " flag " + superStepNum);
+					// System.out.println("Sending message in phase conflictResolution from " + minId 
+						//	+ " to " + edge.getTargetVertexId() + " in superStep " + getSuperstep()
+						//	+ " flag " + superStepNum);
 					sendMessage(edge.getTargetVertexId(), dpw);
 				}
 		}
@@ -61,15 +61,17 @@ public class ParallelMISVertex extends Vertex<LongWritable, LubysAlgorithmVertex
 			for (Edge<LongWritable, FloatWritable> edge : getEdges()) {
 				DoublePairWritable dpw = new DoublePairWritable(minId, minValue);
 				// System.out.println("Sending message in phase conflictResolution " + " in superStep " + getSuperstep());
-				System.out.println("Sending message in phase conflictResolution from " + minId 
-						+ " to " + edge.getTargetVertexId() + " in superStep " + getSuperstep()
-						+ " flag " + superStepNum);
+				// System.out.println("Sending message in phase conflictResolution from " + minId 
+					//	+ " to " + edge.getTargetVertexId() + " in superStep " + getSuperstep()
+					//	+ " flag " + superStepNum);
 				sendMessage(edge.getTargetVertexId(), dpw);
 			}
 			
+			/*
 			if(minId!=getId().get()) { // if you are not the minimum among your neighbors, set your type to notInS.
 				getValue().setVertexState("notInS");
 			}
+			*/
 		}
 		
 		if(superStepNum==2) { // receive from 2 hops and check if the node is the minimum
@@ -83,13 +85,15 @@ public class ParallelMISVertex extends Vertex<LongWritable, LubysAlgorithmVertex
 			}
 			
 			if(minId==getId().get()) {
-				System.out.println("Added to S " + minId);
+				// System.out.println("Added to S " + minId);
 				getValue().setVertexState("inS");
 			}
+			/*
 			else {
 				System.out.println("Added to notInS " + minId);
 				getValue().setVertexState("notInS");
 			}
+			*/
 		}
 	}
 	
@@ -100,8 +104,8 @@ public class ParallelMISVertex extends Vertex<LongWritable, LubysAlgorithmVertex
 		String vertexState = getValue().getVertexState();
 		String phase = getAggregatedValue(PHASE).toString();
 		
-		System.out.println("Super step: " + superStepNum + " vertex state " + vertexState 
-							+ " phase " + phase + " entered");
+		// System.out.println("Super step: " + superStepNum + " vertex state " + vertexState 
+					//		+ " phase " + phase + " entered");
 		
 		if(vertexState!="unknown") { // only consider those vertices whose state is "unknown"
 			voteToHalt();
@@ -109,13 +113,37 @@ public class ParallelMISVertex extends Vertex<LongWritable, LubysAlgorithmVertex
 		
 		if(phase.equals("conflict_resolution")) {
 			phase_conflict += 1;
-			System.out.println("In conflict resolution, phase_conflict " + phase_conflict);
+			// System.out.println("In conflict resolution, phase_conflict " + phase_conflict);
 			// vertexState = getValue().getVertexState();
 			conflictResolution(phase_conflict%3, messages);
 		}
 		
-		else if(phase.equals("check_restart")) { // if there is a vertex with state unknown, it will set the REMAINING_UNKNOWN_VERTICES boolean to false
+		if(phase.equals("remove_neighbors")) {
+			// send message to neighbors only if you are inS
+			if(getValue().getVertexState().equals("inS")) {
+				for (Edge<LongWritable, FloatWritable> edge : getEdges()) { // send an empty message
+					DoublePairWritable dpw = new DoublePairWritable(0,0);
+					sendMessage(edge.getTargetVertexId(), dpw);
+				}
+			}
+		}
+		
+		if(phase.equals("check_restart")) { // if there is a vertex with state unknown, it will set the REMAINING_UNKNOWN_VERTICES boolean to false
 			phase_conflict=0;
+			
+			int flag_test = 0;
+			for (DoublePairWritable message: messages) { // check to see if a "remove_neighbors" message was received
+				flag_test = 1;
+			}
+			
+			if(flag_test==1) { // if a node receives a "remove_neighbors" message, remove it.
+				getValue().setVertexState("notInS");
+				// System.out.println("here");
+			}
+			
+			vertexState = getValue().getVertexState();
+			// System.out.println(vertexState);
+			
 			if(vertexState.equals("unknown")) {
 				// System.out.println("Still unknown id " + getId().get());
 				aggregate(REMAINING_UNKNOWN_VERTICES, new BooleanWritable(false));

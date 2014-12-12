@@ -23,6 +23,8 @@ public class ParallelMISMasterCompute extends DefaultMasterCompute {
 		
 		String phase = getAggregatedValue(ParallelMISVertex.PHASE).toString();
 		
+		// System.out.println("Phase " + phase + " step_num " + step_num);
+		
 		if(getSuperstep()==0) {
 			setAggregatedValue(ParallelMISVertex.PHASE, new Text("conflict_resolution")); // set phase to 1 in the first superstep
 			setAggregatedValue(ParallelMISVertex.REMAINING_UNKNOWN_VERTICES, new BooleanWritable(true));
@@ -34,13 +36,23 @@ public class ParallelMISMasterCompute extends DefaultMasterCompute {
 			step_num += 1;
 		}
 		
-		else if(step_num>2) {
+		else if(step_num==3) {
+			setAggregatedValue(ParallelMISVertex.PHASE, new Text("remove_neighbors"));
+			step_num += 1;
+		}
+		
+		else if(step_num==4) {
 			setAggregatedValue(ParallelMISVertex.PHASE, new Text("check_restart"));
-			boolean restartFlag = this.<BooleanWritable>getAggregatedValue(LubysAlgorithm.REMAINING_UNKNOWN_VERTICES).get();
+			step_num += 1;
+		}
+		
+		else if(step_num>4) {
+			boolean restartFlag = this.<BooleanWritable>getAggregatedValue(ParallelMISVertex.REMAINING_UNKNOWN_VERTICES).get();
+			// System.out.println("restartFlag " + restartFlag);
 			if(restartFlag==false) { // restart from selection step again
-				setAggregatedValue(LubysAlgorithm.PHASE, new Text(""));
-				setAggregatedValue(LubysAlgorithm.REMAINING_UNKNOWN_VERTICES, new BooleanWritable(true));
-				step_num = 0;
+				setAggregatedValue(ParallelMISVertex.PHASE, new Text("conflict_resolution"));
+				setAggregatedValue(ParallelMISVertex.REMAINING_UNKNOWN_VERTICES, new BooleanWritable(true));
+				step_num = 1;
 			}
 			else { // halt computation
 				haltComputation();

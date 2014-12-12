@@ -81,6 +81,7 @@ public class LubysAlgorithmVertexValue implements Writable {
 		this.vertexValue = dataInput.readDouble();
 		this.vertexIsRemoved = dataInput.readBoolean();
 		this.vertexDegree = dataInput.readInt();
+		this.vertexState = dataInput.readUTF();
 		
 		int size = dataInput.readInt();
 		
@@ -96,6 +97,7 @@ public class LubysAlgorithmVertexValue implements Writable {
 		dataOutput.writeDouble(this.vertexValue);
 		dataOutput.writeBoolean(this.vertexIsRemoved);
 		dataOutput.writeInt(this.vertexDegree);
+		dataOutput.writeUTF(this.vertexState);
 		
 		dataOutput.writeInt(this.receivedMessagesFrom.size());
 

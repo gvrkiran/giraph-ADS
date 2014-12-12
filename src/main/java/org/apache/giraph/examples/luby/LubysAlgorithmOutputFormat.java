@@ -22,7 +22,7 @@ public class LubysAlgorithmOutputFormat extends TextVertexOutputFormat<LongWrita
 		@Override
 		protected Text convertVertexToLine(Vertex<LongWritable, LubysAlgorithmVertexValue, FloatWritable, ?> vertex) throws IOException {
 			
-			boolean vertexIncluded = vertex.getValue().getVertexIncluded();
+			// boolean vertexIncluded = vertex.getValue().getVertexIncluded();
 			String vertexState = vertex.getValue().getVertexState().toString();
 			
 			if(vertexState.equals("inS")) {

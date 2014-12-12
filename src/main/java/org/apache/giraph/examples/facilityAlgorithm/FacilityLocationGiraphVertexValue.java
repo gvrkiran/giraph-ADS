@@ -22,6 +22,7 @@ public class FacilityLocationGiraphVertexValue implements Writable {
 	public double facilityCost = 0;
 	public double t_i = 0;
 	public Set<Double> receivedFreezeMessagesFrom = new HashSet<Double>();
+	public String ADS = null;
 	
 	/** Default constructor for reflection */
 	public FacilityLocationGiraphVertexValue() {
@@ -38,7 +39,19 @@ public class FacilityLocationGiraphVertexValue implements Writable {
 	}
 	
 	public Set<Double> getReceivedFreezeMessagesFrom() {
-		return receivedFreezeMessagesFrom;
+		return this.receivedFreezeMessagesFrom;
+	}
+	
+	public void setADS() {
+		this.ADS = "";
+	}
+	
+	public void setADS(String ads) {
+		this.ADS = ads;
+	}
+	
+	public String getADS() {
+		return this.ADS;
 	}
 	
 	public void setFacilityCost(double facilityCost) {
@@ -94,6 +107,8 @@ public class FacilityLocationGiraphVertexValue implements Writable {
 		      this.receivedFreezeMessagesFrom.add(
 		    		  dataInput.readDouble());
 		}
+		
+		this.ADS = dataInput.readUTF();
 	}
 
 	@Override
@@ -111,7 +126,16 @@ public class FacilityLocationGiraphVertexValue implements Writable {
 			double tmp = iter.next();
 			dataOutput.writeDouble(tmp);
 		}
-
+		
+		dataOutput.writeUTF(ADS);
+		/*
+		dataOutput.writeInt(this.ADS.size());
+		
+		for (Entry<Double, Double> entry : this.ADS.entrySet()) {
+			dataOutput.writeDouble(entry.getKey());
+			dataOutput.writeDouble(entry.getValue());
+		}
+		*/
 	}
 	
 }

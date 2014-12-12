@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.Map.Entry;
 
 import org.apache.giraph.graph.Vertex;
@@ -35,13 +37,18 @@ public class FacilityLocationADSWeightedOutputFormat extends TextVertexOutputFor
 			sb.append("\t");
 			
 			// ArrayList<Double> vertexADS = vertex.getValue().getADS();
-			Map<Double, Double> vertexADS = vertex.getValue().getADS();
+			// Map<Double, Double> vertexADS = vertex.getValue().getADS();
+			Map <Double, Map<Double, Double>> vertexADSTmp = vertex.getValue().getADSTmp();
 
-			for (Entry<Double, Double> entry : vertexADS.entrySet()) {
-				sb.append(entry.getKey());
-				sb.append(":");
-				sb.append(entry.getValue());
-				sb.append(";");
+			for (Entry<Double, Map<Double, Double>> entry : vertexADSTmp.entrySet()) {
+				
+				Map<Double, Double> tmp = entry.getValue();
+				for (Entry<Double, Double> entry1 : tmp.entrySet()) {
+					sb.append(entry1.getKey());
+					sb.append(":");
+					sb.append(entry1.getValue());
+					sb.append(";");
+				}
 			}
 
 			/*

@@ -1,12 +1,15 @@
 package org.apache.giraph.examples.luby;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
 import org.apache.giraph.bsp.ApplicationState;
 import org.apache.giraph.edge.Edge;
 import org.apache.giraph.examples.ads.DoublePairWritable;
+import org.apache.giraph.examples.facilityAlgorithm.FacilityLocationGiraphWorkerContext;
 import org.apache.giraph.examples.facilityAlgorithm.MapWritable;
 import org.apache.giraph.graph.Vertex;
 import org.apache.hadoop.io.BooleanWritable;
@@ -36,7 +39,7 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 		if(superStepNum==0) {
 			for (Edge<LongWritable, FloatWritable> edge : getEdges()) {
 				DoublePairWritable dpw = new DoublePairWritable(getId().get(), getValue().getVertexValue());
-				System.out.println("Sending message from " + " " + getId().get() + " to " + edge.getTargetVertexId());
+				// System.out.println("Sending message in phase degreeComputation " + " in superStep " + superStepNum);
 				sendMessage(edge.getTargetVertexId(), dpw);
 			}
 		}
@@ -50,7 +53,7 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 				}
 				for (Edge<LongWritable, FloatWritable> edge : getEdges()) {
 					DoublePairWritable dpw = new DoublePairWritable(id, 1);
-					System.out.println("Sending message from " + " " + getId().get() + " to " + edge.getTargetVertexId());
+					// System.out.println("Sending message in phase degreeComputation " + " in superStep " + superStepNum);
 					sendMessage(edge.getTargetVertexId(), dpw);
 				}
 				receivedMessagesFrom.add(id);
@@ -71,6 +74,15 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 			getValue().setVertexDegree(vertexDegree);
 			getValue().setReceivedMessagesFrom(receivedMessagesFrom);
 		}
+	}
+	
+	public void getDegree() {
+		Map<Integer, Integer> vertexDegree = new HashMap<Integer, Integer> ();
+		vertexDegree = ((LubysAlgorithmWorkerContext) getWorkerContext()).getDegree();
+		// System.out.println("Vertex degree size " + vertexDegree.size());
+		int vertexId = (int) getId().get();
+		int degree = vertexDegree.get(vertexId);
+		getValue().setVertexDegree(degree);
 	}
 	
 	public void conflictResolution(int superStepNum, Iterable<DoublePairWritable> messages) {
@@ -111,7 +123,7 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 					}
 					*/
 					DoublePairWritable dpw = new DoublePairWritable(minId, minValue);
-					System.out.println("Sending message from " + " " + getId().get() + " to " + edge.getTargetVertexId());
+					// System.out.println("Sending message in phase conflictResolution " + " in superStep " + getSuperstep());
 					sendMessage(edge.getTargetVertexId(), dpw);
 				}
 			// }
@@ -133,7 +145,7 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 				getValue().setVertexIncluded();
 				for (Edge<LongWritable, FloatWritable> edge : getEdges()) {
 					DoublePairWritable dpw = new DoublePairWritable(minId, minValue);
-					System.out.println("Sending message from " + " " + getId().get() + " to " + edge.getTargetVertexId());
+					// System.out.println("Sending message in phase conflictResolution " + " in superStep " + getSuperstep());
 					sendMessage(edge.getTargetVertexId(), dpw);
 				}
 				getValue().setVertexState("inS");
@@ -153,6 +165,10 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 //		if(phase_conflict>1)
 //			phase_conflict = 0;
 		
+		if(getValue().getVertexState()!="unknown") { // only consider those vertices whose state is "unknown"
+			voteToHalt();
+		}
+		
 		String phase = getAggregatedValue(PHASE).toString();
 		// boolean restartFlag = this.<BooleanWritable>getAggregatedValue(REMAINING_UNKNOWN_VERTICES).get();
 		
@@ -161,7 +177,8 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 		if(phase.equals("degree")) {
 			// System.out.println("Vertex id " + getId().get());
 			phase_degree += 1;
-			degreeComputation(phase_degree, messages);
+			// degreeComputation(phase_degree, messages);
+			getDegree();
 		}
 		
 		else if(phase.equals("selection")) { // Selection step: Takes one superstep. Each vertex v sets its type to TentativelyInS with probability 1/(2×degree(v)),
@@ -184,7 +201,7 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 					// System.out.println("Super step: " + superStepNum + " phase " + phase + " middle2");
 					for (Edge<LongWritable, FloatWritable> edge : getEdges()) {
 						DoublePairWritable dpw = new DoublePairWritable(getId().get(), getValue().getVertexValue());
-						System.out.println("Sending message from " + " " + getId().get() + " to " + edge.getTargetVertexId());
+						// System.out.println("Sending message in phase selection " + " in superStep " + getSuperstep());
 						sendMessage(edge.getTargetVertexId(), dpw);
 					}
 					// System.out.println("Super step: " + superStepNum + " phase " + phase + " middle3");
@@ -212,7 +229,7 @@ public class LubysAlgorithm extends Vertex<LongWritable, LubysAlgorithmVertexVal
 				getValue().setVertexState("notInS");
 				for (Edge<LongWritable, FloatWritable> edge : getEdges()) {
 					DoublePairWritable dpw = new DoublePairWritable(getId().get(), getValue().getVertexValue());
-					System.out.println("Sending message from " + " " + getId().get() + " to " + edge.getTargetVertexId());
+					// System.out.println("Sending message in phase NotInSDiscovery " + " in superStep " + getSuperstep());
 					sendMessage(edge.getTargetVertexId(), dpw);
 				}
 				voteToHalt();

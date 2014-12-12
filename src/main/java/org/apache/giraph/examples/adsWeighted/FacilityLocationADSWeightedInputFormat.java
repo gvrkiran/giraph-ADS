@@ -61,8 +61,10 @@ public class FacilityLocationADSWeightedInputFormat extends TextVertexInputForma
 			String[] splitLine = line.toString().split("\t");
 			String vertexHashStr = splitLine[1];
 			double vertexHash = Double.parseDouble(vertexHashStr);
-			value.setADS(vertexHash);
+			// value.setADS(vertexHash);
 			value.setPrevIterAdded(vertexHash);
+			value.setADSTmp(vertexHash);
+			value.setHashValue(vertexHash);
 
 			return value;
 		}

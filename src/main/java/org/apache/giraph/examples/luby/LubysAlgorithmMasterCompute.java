@@ -39,12 +39,12 @@ public class LubysAlgorithmMasterCompute extends DefaultMasterCompute {
 			// System.out.println("Phase in superstep 0 " + getAggregatedValue(LubysAlgorithm.PHASE).toString());
 		}
 		
-		else if(getSuperstep()<=2 && phase.equals("degree")) {
+		else if(getSuperstep()<=1 && phase.equals("degree")) {
 			step_num = 0;
 			// System.out.println("Phase in superstep 1 and 2 " + getAggregatedValue(LubysAlgorithm.PHASE).toString());
 		}
 		
-		else if(getSuperstep()>2 && step_num==0) {
+		else if(getSuperstep()>1 && step_num==0) {
 			setAggregatedValue(LubysAlgorithm.PHASE, new Text("selection"));
 			step_num = 1;
 		}

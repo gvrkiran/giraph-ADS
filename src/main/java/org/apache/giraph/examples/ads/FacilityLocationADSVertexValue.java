@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.apache.hadoop.io.Writable;
 
@@ -17,8 +18,8 @@ public class FacilityLocationADSVertexValue implements Writable {
 
 	// private ArrayList<Double> vertexADS = new ArrayList<Double>();
 	// private Map<Double, Double> vertexADS = new HashMap<Double, Double>();
-	private Map<Double, ArrayList<Double>> vertexADSTmp = new HashMap<Double, ArrayList<Double>> ();
-	private ArrayList<Double> topKHash = new ArrayList<Double> ();
+	private Map<Double, TreeSet<Double>> vertexADSTmp = new HashMap<Double, TreeSet<Double>> ();
+	private TreeSet<Double> topKHash = new TreeSet<Double> ();
 	private double hashValue = 0d;
 	private double currentDistance = 0d;
 	
@@ -54,16 +55,16 @@ public class FacilityLocationADSVertexValue implements Writable {
 	}
 	
 	public void setADSTmp(double hash) {
-		ArrayList<Double> tmp = new ArrayList();
+		TreeSet<Double> tmp = new TreeSet<Double>();
 		tmp.add(hash);
 		this.vertexADSTmp.put(0.0, tmp);
 	}
 	
-	public void setADSTmp(Map<Double, ArrayList<Double>> ADSTmp) {
+	public void setADSTmp(Map<Double, TreeSet<Double>> ADSTmp) {
 		this.vertexADSTmp = ADSTmp;
 	}
 	
-	public Map<Double, ArrayList<Double>> getADSTmp() {
+	public Map<Double, TreeSet<Double>> getADSTmp() {
 		return this.vertexADSTmp;
 	}
 	
@@ -117,11 +118,12 @@ public class FacilityLocationADSVertexValue implements Writable {
 		
 		dataOutput.writeInt(this.vertexADSTmp.size());
 		
-		for (Entry<Double, ArrayList<Double>> entry : this.vertexADSTmp.entrySet()) {
+		for (Entry<Double, TreeSet<Double>> entry : this.vertexADSTmp.entrySet()) {
 			topKHash = entry.getValue();
-			dataOutput.write(topKHash.size());
-			for (int i = 0; i < topKHash.size(); i++) {
-				dataOutput.writeDouble(topKHash.get(i));
+			dataOutput.writeInt(topKHash.size());
+			Iterator<Double> iterator = topKHash.iterator();
+			while(iterator.hasNext()) {
+				dataOutput.writeDouble(iterator.next());
 			}
 			dataOutput.writeDouble(entry.getKey());
 		}

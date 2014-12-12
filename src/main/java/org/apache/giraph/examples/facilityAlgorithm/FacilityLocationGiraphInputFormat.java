@@ -2,11 +2,16 @@ package org.apache.giraph.examples.facilityAlgorithm;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.giraph.edge.Edge;
 import org.apache.giraph.edge.EdgeFactory;
 import org.apache.giraph.io.formats.TextVertexInputFormat;
+import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.FloatWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
@@ -15,7 +20,9 @@ import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
 public class FacilityLocationGiraphInputFormat extends TextVertexInputFormat<LongWritable, FacilityLocationGiraphVertexValue, FloatWritable> {
-
+	
+	public Set<Long> verticesOnThisMachine = new HashSet<Long> ();
+	
 	@Override
 	public TextVertexReader createVertexReader(InputSplit split, TaskAttemptContext context) throws IOException {
 		return new FacilityLocationGiraphVertexReaderFromEachLine();
@@ -51,7 +58,7 @@ public class FacilityLocationGiraphInputFormat extends TextVertexInputFormat<Lon
 		protected LongWritable getId(Text line) throws IOException {
 			String[] splitLine = line.toString().split("\t");
 			long id = Long.parseLong(splitLine[0]);
-
+			verticesOnThisMachine.add(id);
 			return new LongWritable(id);
 		}
 
@@ -62,6 +69,21 @@ public class FacilityLocationGiraphInputFormat extends TextVertexInputFormat<Lon
 				String facilityCostStr = splitLine[1];
 				double facilityCost = Double.parseDouble(facilityCostStr);
 				value.setFacilityCost(facilityCost);
+				
+				String vertexADS = splitLine[3];
+				
+				/*
+				Map<Double, Double> ads = new HashMap<Double, Double> ();
+				
+				for (int i = 0; i < vertexADS.length; i++) {
+					String[] temp1 = vertexADS[i].split(":");
+			        double hash = Double.parseDouble(temp1[0]);
+			        double distance = Double.parseDouble(temp1[1]);
+			        ads.put(hash,distance);
+			      }
+				*/
+				
+				value.setADS(vertexADS);
 				
 				return value;
 		}

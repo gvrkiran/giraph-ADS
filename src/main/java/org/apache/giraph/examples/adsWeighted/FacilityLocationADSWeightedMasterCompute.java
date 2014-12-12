@@ -1,5 +1,6 @@
 package org.apache.giraph.examples.adsWeighted;
 
+import org.apache.giraph.examples.ads.FacilityLocationADS;
 import org.apache.giraph.master.DefaultMasterCompute;
 
 public class FacilityLocationADSWeightedMasterCompute extends DefaultMasterCompute{
@@ -14,7 +15,10 @@ public class FacilityLocationADSWeightedMasterCompute extends DefaultMasterCompu
 	@Override
 	public void compute() {
 		endTime = System.currentTimeMillis();
-		System.out.println("Superstep num. " + getSuperstep() + " Time taken " + (endTime-startTime)/1000 + " seconds");
+		int maxIterations = FacilityLocationADSWeighted.MAX_ITERATIONS.get(getConf());
+		System.out.println("Superstep num. " + getSuperstep() + " maxIterations " + maxIterations);
+		if(getSuperstep()>maxIterations)
+			haltComputation();
 	}
 
 }
